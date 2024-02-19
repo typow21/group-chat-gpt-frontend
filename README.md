@@ -1,1 +1,1 @@
-# Group Chat GPT Frontent
+# Group Chat GPT Frontend
