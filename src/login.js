@@ -14,7 +14,7 @@ function LoginForm() {
 
     const handleLogin = () => {
         // Perform a POST request using fetch with JSON data
-        fetch('http://192.168.1.162:8000/login', {
+        fetch('http://'+process.env.REACT_APP_BASE_IP+':8000/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

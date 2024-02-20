@@ -22,7 +22,7 @@ function Home() {
       description: ''
     };
 
-    fetch('http://192.168.1.162:8000/create-room', {
+    fetch('http://'+process.env.REACT_APP_BASE_IP+':8000/create-room', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ function Home() {
 
 
   const fetchRooms = () => {
-    fetch('http://192.168.1.162:8000/rooms')
+    fetch('http://'+process.env.REACT_APP_BASE_IP+':8000/rooms')
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -59,7 +59,7 @@ function Home() {
   };
 
   const deleteRoom = (roomId) => {
-    fetch('http://192.168.1.162:8000/delete-room/' + roomId, {
+    fetch('http://'+process.env.REACT_APP_BASE_IP+':8000/delete-room/' + roomId, {
      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

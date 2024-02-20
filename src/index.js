@@ -11,12 +11,12 @@ import { getMainDefinition } from "@apollo/client/utilities";
 
 // setting configuration for websocket connect for subscription
 const httpLink = new HttpLink({
-  uri: "http://192.168.1.162:8000/graphql",
+  uri: "http://" +process.env.REACT_APP_BASE_IP+":8000/graphql",
 });
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: "ws://192.168.1.162:8000/graphql",
+    url: "ws://"+process.env.REACT_APP_BASE_IP+":8000/graphql",
   })
 );
 

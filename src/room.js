@@ -38,7 +38,7 @@ const Room = function () {
   }, []);
 
   const shareRoom = () => {
-    fetch('http://192.168.1.162:8000/share-room', {
+    fetch('http://' + process.env.REACT_APP_BASE_IP + ':8000/share-room', {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ const Room = function () {
     })
   }
   const fetchRoom = () => {
-    fetch('http://192.168.1.162:8000/room/' + room_id)
+    fetch('http://' + process.env.REACT_APP_BASE_IP + ':8000/room/' + room_id)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -111,7 +111,7 @@ const Room = function () {
     if (sendMessageText === ""){
       return;
     }
-    fetch('http://192.168.1.162:8000/send-message', {
+    fetch('http://' + process.env.REACT_APP_BASE_IP + ':8000/send-message', {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
