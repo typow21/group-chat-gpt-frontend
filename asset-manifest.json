@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/group-chat-gpt-frontend/static/css/main.4b19061b.css",
+    "main.js": "/group-chat-gpt-frontend/static/js/main.9a3ee260.js",
+    "static/js/453.b179c878.chunk.js": "/group-chat-gpt-frontend/static/js/453.b179c878.chunk.js",
+    "index.html": "/group-chat-gpt-frontend/index.html",
+    "main.4b19061b.css.map": "/group-chat-gpt-frontend/static/css/main.4b19061b.css.map",
+    "main.9a3ee260.js.map": "/group-chat-gpt-frontend/static/js/main.9a3ee260.js.map",
+    "453.b179c878.chunk.js.map": "/group-chat-gpt-frontend/static/js/453.b179c878.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.4b19061b.css",
+    "static/js/main.9a3ee260.js"
+  ]
+}
