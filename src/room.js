@@ -5,6 +5,7 @@ import "./room.css";
 import "./navbar.css"
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Import the whole Font Awesome library
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const MESSAGE_SUB = function (room_id) {
   return gql`
@@ -187,7 +188,7 @@ const Room = function () {
       <nav className="navbar">
         <div className="navbar-brand">
 
-          <Link to="/">GroupChat GPT</Link>
+              <Link id = "home" to="/">Home</Link>
               </div>
               <div id="roomDetails">
         <h3 id="roomName">{room != null ? room.name : "No room name"}</h3>
@@ -227,6 +228,7 @@ const Room = function () {
             </div>
             <div id="message-spacer"></div>
             <div className="input-container">
+              {/* <div>✨</div> */}
               <input
                 type="text"
                 id="sendMsgInput"
@@ -235,7 +237,9 @@ const Room = function () {
                 onChange={(e) => setSendMessageText(e.target.value)}
                 onKeyPress={handleKeyPress} // Call handleKeyPress function on key press
               />
-              <button onClick={sendMessage}>Send</button>
+              
+              <i onClick={sendMessage} id ="send-btn" className="fa fa-arrow-up"></i>
+              
             </div>
           </div>
         </div>

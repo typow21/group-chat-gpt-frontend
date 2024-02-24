@@ -4,28 +4,36 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  
+}
+
+#home{
+  font-size: large;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 #roomDetails {
   display: flex;
-  align-items: center;
-  margin: auto;
-  width: 50%;
+  /* align-items: center; */
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 #roomName {
   text-align: left;
+  margin-left: auto;
 }
 
 #shareRoomBnt {
   margin-left: auto;
+  margin-right: 10%;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 
 .chat-container {
-  display: flex;
-  flex: 1;
   margin-top: 5vh;
   padding-top: 5vh;
 }
@@ -60,27 +68,23 @@
 
 .message span {
   font-size: 14px;
-  color: #888;
+  color: #b4b4b4;
 }
 
 #message-spacer {
-  height: 100px;
+  height: 9vh;
 }
 
 .input-container {
   display: flex;
   align-items: center;
+  align-self: center;
   padding: 10px;
   position: fixed;
   width: 80%;
-  margin-right: 5%;
-  margin-left: 5%;
   border: .1px solid rgb(134, 134, 134);
   border-radius: 5px;
-  bottom: 40px;
-  /* Adjust margin from bottom */
-  right: 1;
-  left: 1;
+  bottom: 3vh;
   /* Align to the right */
   background-color: #ffffff;
   /* Set background color */
@@ -101,6 +105,14 @@
   font-size: large;
 }
 
+#send-btn{
+  color: #007bff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: large;
+}
+
 .input-container button {
   background-color: #007bff;
   color: #fff;
@@ -115,8 +127,8 @@ input:focus {
   outline: none !important;
 }
 
-.input-container button:hover {
-  background-color: #0056b3;
+#send-btn:hover {
+  color: #007bff;
   cursor: pointer;
 }
 
@@ -128,7 +140,8 @@ input:focus {
 
 #sent {
   text-align: right;
-  background-color: #DCF8C6;
+  background-color: #006308;
+  color: white;
   /* Example color for sent messages */
   margin-left: auto;
 }
