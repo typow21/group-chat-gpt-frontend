@@ -1,7 +1,10 @@
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, gql, useSubscription } from "@apollo/client";
-import { useEffect, useState , useRef} from "react";
-import NavBar from './navbar'
-import './room.css'
+import NavBar from "./navbar";
+import "./room.css";
+import "./navbar.css"
+import '@fortawesome/fontawesome-free/css/all.min.css'; // Import the whole Font Awesome library
+import { Link } from 'react-router-dom';
 
 const MESSAGE_SUB = function (room_id) {
   return gql`
@@ -13,16 +16,27 @@ const MESSAGE_SUB = function (room_id) {
       }
     }
 `;
+};
+
+const ROOM_NOTIFICATION_SUB = function (room_id) {
+  return gql`
+  subscription RoomNotification {
+    roomNotif(roomId: "${room_id}") {
+      message
+    }
+  }
+`;
 }
 
 const Room = function () {
   const [messages, setMessages] = useState([]);
-  const [room, setRoom] = useState()
+  const [room, setRoom] = useState();
   const [sendMessageText, setSendMessageText] = useState("");
   const [shareRoomUsername, setShareRoomUsername] = useState("");
-  let room_id = localStorage.getItem('selectedRoomId');
-  let userId = localStorage.getItem('userId')
-  console.log("roomId", room_id)
+  const [showPopup, setShowPopup] = useState(false);
+  let room_id = localStorage.getItem("selectedRoomId");
+  let userId = localStorage.getItem("userId");
+  console.log("roomId", room_id);
 
   const messagesEndRef = useRef(null); // Create a ref for messages container
 
@@ -38,46 +52,54 @@ const Room = function () {
   }, []);
 
   const shareRoom = () => {
-    fetch('http://' + process.env.REACT_APP_BASE_IP + ':8000/share-room', {
+    fetch(process.env.REACT_APP_ENDPOINT + "/share-room", {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ "username": shareRoomUsername, "roomId": room_id })
-    })
-  }
+      body: JSON.stringify({ username: shareRoomUsername, roomId: room_id }),
+    });
+  };
   const fetchRoom = () => {
-    fetch('http://' + process.env.REACT_APP_BASE_IP + ':8000/room/' + room_id)
-      .then(response => {
+    fetch(process.env.REACT_APP_ENDPOINT + "/room/" + room_id)
+      .then((response) => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
         return response.json();
       })
-      .then(data => {
-        console.log("roomdata:", data)
+      .then((data) => {
+
         setRoom(data);
-        setMessages([...messages, ...data.messages])
+        console.log("roomdata:", data);
+        setMessages([...messages, ...data.messages]);
       })
-      .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
       });
   };
 
   // setting subscription
-  const { loading_ws, error_ws, data_ws } = useSubscription(
+  const { loading_ws, error_ws, data_ws } = useSubscription(MESSAGE_SUB(room_id), {
+    onSubscriptionData: (data_ws) => {
+      if (data_ws?.subscriptionData?.data?.messages) {
+        console.log("data", data_ws?.subscriptionData?.data?.messages);
+        setMessages([...messages, data_ws?.subscriptionData?.data?.messages]);
+        console.log("msgs", messages);
+      }
+    },
+  });
 
-    MESSAGE_SUB(room_id),
-    {
-      onSubscriptionData: (data_ws) => {
-        if (data_ws?.subscriptionData?.data?.messages) {
-          console.log("data", data_ws?.subscriptionData?.data?.messages)
-          setMessages([...messages, data_ws?.subscriptionData?.data?.messages])
-          console.log("msgs", messages)
-        }
-      },
-    }
-  );
+  const { rn_loading_ws, rn_error_ws, rn_data_ws } = useSubscription(ROOM_NOTIFICATION_SUB(room_id), {
+    onSubscriptionData: (data_ws) => {
+      let message = rn_data_ws?.subscriptionData?.data?.message
+      if (message) {
+        console.log("data", message);
+        setMessages([...messages, message]);
+        console.log("msg", message);
+      }
+    },
+  });
 
   // setting up trigger for data change
   useEffect(() => {
@@ -93,99 +115,133 @@ const Room = function () {
   if (error_ws) return <p>Error : {error_ws.message}</p>;
   let message_html = messages.map(({ id, content, sender }) => (
     <div>
-      {
-        id === userId ?
-          <div id="recieved-msg"><p>{sender}: {content}</p></div>:
-          <div id="sent-msg"><p>{content}</p></div>  
-      }
-
-
+      {id === userId ? (
+        <div id="recieved-msg">
+          <p>
+            {sender}: {content}
+          </p>
+        </div>
+      ) : (
+        <div id="sent-msg">
+          <p>
+            {content}
+          </p>
+        </div>
+      )}
     </div>
   ));
   if (messages.length === 0) {
-    message_html = (<p>No messages yet.</p>)
+    message_html = <p>No messages yet.</p>;
   }
 
-
   const sendMessage = () => {
-    if (sendMessageText === ""){
+    if (sendMessageText === "") {
       return;
     }
-    fetch('http://' + process.env.REACT_APP_BASE_IP + ':8000/send-message', {
+    fetch(process.env.REACT_APP_ENDPOINT + "/send-message", {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ "senderId": userId, "roomId": room_id, "content": sendMessageText })
+      body: JSON.stringify({
+        senderId: userId,
+        roomId: room_id,
+        content: sendMessageText,
+      }),
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
-
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         if ("error" in data) {
           alert(data.error);
         } else {
-          
-          setMessages([...messages, data])
+          setMessages([...messages, data]);
+          setSendMessageText(""); // Clear input field after sending message
           console.log("data 112", data);
-          document.getElementById("sendMsgInput").value = ""
         }
       })
-      .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
       });
   };
 
+  // Handle Enter key press
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent form submission
+      sendMessage();
+    }
+  };
+
+  const togglePopup = () => {
+    setShowPopup(!showPopup);
+  };
+
+
   return (
-    <div className="room-container">
-      <NavBar />
-      <div className="chat-container">
-        <div className="sidebar">
-          <div className="room-details">
-            <h1>Room Details</h1>
-           <div>
-           <input
-              type="text"
-              id = "shareRoomUsername"
-              placeholder="type username here"
-              value={shareRoomUsername}
-              onChange={(e) => setShareRoomUsername(e.target.value)}
-            />
-            <button onClick={shareRoom}>Send</button>
-           </div>
+    <div>
+      <nav className="navbar">
+        <div className="navbar-brand">
+
+          <Link to="/">GroupChat GPT</Link>
+              </div>
+              <div id="roomDetails">
+        <h3 id="roomName">{room != null ? room.name : "No room name"}</h3>
+        <button id="shareRoomBnt" onClick={togglePopup}><i className="fas fa-user-plus"></i></button>
+      </div>
+      </nav>
+      {showPopup && (
+        <div className="popup-background">
+          <div className="popup">
+              <h3>Invite user</h3>
+              <input
+                type="text"
+                id="shareRoomUsername"
+                placeholder="type username here"
+                value={shareRoomUsername}
+                onChange={(e) => setShareRoomUsername(e.target.value)}
+              />
+              <button onClick={shareRoom} className="submit-button">Submit</button>
+              <button onClick={togglePopup} className="close-button">Close</button>
           </div>
         </div>
-        <div className="chat">
-          <div className="messages">
-            {messages.map((message) => (
-              <div key={message.id} className="message" id = {message.sender ==userId ? "sent": "recieved" }>
-                
-                <p>{message.content}</p>
-                <span>{message.sender}</span>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-          <div id = "message-spacer"></div>
-          <div className="input-container">
-            <input
-              type="text"
-              id = "sendMsgInput"
-              placeholder="Type your message..."
-              value={sendMessageText}
-              onChange={(e) => setSendMessageText(e.target.value)}
-              
-            />
-            <button onClick={sendMessage}>Send</button>
+      )}
+      <div className="room-container">
+
+
+        <div className="chat-container">
+
+          <div className="chat">
+            <div className="messages">
+              {messages.map((message) => (
+                <div key={message.id} className="message" id={message.sender == userId ? "sent" : "recieved"}>
+                  <p>{message.content}</p>
+                  <span>{message.sender}</span>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+            <div id="message-spacer"></div>
+            <div className="input-container">
+              <input
+                type="text"
+                id="sendMsgInput"
+                placeholder="Type your message..."
+                value={sendMessageText}
+                onChange={(e) => setSendMessageText(e.target.value)}
+                onKeyPress={handleKeyPress} // Call handleKeyPress function on key press
+              />
+              <button onClick={sendMessage}>Send</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default Room;

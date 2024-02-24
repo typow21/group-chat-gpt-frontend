@@ -7,26 +7,27 @@
   
 }
 
+#roomDetails {
+  display: flex;
+  align-items: center;
+  margin: auto;
+  width: 50%;
+}
+
+#roomName {
+  text-align: left;
+}
+
+#shareRoomBnt {
+  margin-left: auto;
+}
+
+
 .chat-container {
   display: flex;
   flex: 1;
   margin-top: 5vh;
   padding-top: 5vh;
-}
-
-.sidebar {
-  flex: 1;
-  background-color: #f8f8f8;
-  border-right: 1px solid #ddd;
-  padding-left: 20px;
-  padding-right: 20px;
-  position: relative;
-  z-index: 1;
-}
-
-.room-details {
-  position: fixed;
-  margin-bottom: 20px;
 }
 
 .chat {
@@ -71,13 +72,15 @@
   align-items: center;
   padding: 10px;
   position: fixed;
-  width: 60%;
+  width: 80%;
   margin-right: 5%;
+  margin-left: 5%;
   border: .1px solid rgb(134, 134, 134);
   border-radius: 5px;
   bottom: 40px;
   /* Adjust margin from bottom */
-  right: 0;
+  right: 1;
+  left: 1;
   /* Align to the right */
   background-color: #ffffff;
   /* Set background color */

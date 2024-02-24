@@ -1,28 +1,30 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './navbar.css'; // Import the CSS file
 
-function logout(){
-    localStorage.clear()
-    window.location.href = './login'
+function logout() {
+    localStorage.clear();
+    window.location.href = '/login';
 }
-function checkAuth(){
-    let user = localStorage.getItem("user");
-    if(user != null){
-        return;
-    }
-    else{
+
+function checkAuth() {
+    const user = localStorage.getItem("user");
+    if (!user) {
         logout();
     }
 }
 
 function Navbar() {
     checkAuth();
+
     return (
         <nav className="navbar">
-            <div className="navbar-brand" onClick={() => window.location.href = './' }>GroupChat GPT</div>
+            <div className="navbar-brand">
+                <Link to="/">GroupChat GPT</Link>
+            </div>
             <div className="navbar-links">
-                <a><b>{localStorage.getItem('userId')}</b></a>
-                <a onClick={logout}>Logout</a>
+                <p><b>{localStorage.getItem('userId')}</b></p>
+                <button onClick={logout}>Logout</button>
             </div>
         </nav>
     );

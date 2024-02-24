@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './login.css'; // Import CSS file for styling
 
 function LoginForm() {
     const [username, setUsername] = useState('');
@@ -14,7 +15,7 @@ function LoginForm() {
 
     const handleLogin = () => {
         // Perform a POST request using fetch with JSON data
-        fetch('http://'+process.env.REACT_APP_BASE_IP+':8000/login', {
+        fetch(process.env.REACT_APP_ENDPOINT + '/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -45,18 +46,19 @@ function LoginForm() {
     };
 
     return (
-        <div>
+        <div className="login-form-container"> {/* Apply a class to style the container */}
             <h2>User Login</h2>
-            <form>
+            <form className="login-form"> {/* Apply a class to style the form */}
                 <label htmlFor="username">Username:</label>
                 <input type="text" id="username" value={username} onChange={handleUsernameChange} required /><br />
 
                 <label htmlFor="password">Password:</label>
                 <input type="password" id="password" value={password} onChange={handlePasswordChange} required /><br />
 
-                <button type="button" onClick={handleLogin}>Login</button>
+                <button id= "login-btn" type="button" onClick={handleLogin}>Login</button>
+                <button id ="signup-btn" type="button" onClick={() => window.location.href = './signup'}>Sign up</button>
             </form>
-            <button onClick={() => window.location.href = './signup.html'}>Sign up</button>
+            
         </div>
     );
 }
