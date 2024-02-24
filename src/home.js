@@ -83,10 +83,6 @@ function Home() {
     });
   };
 
-  function selectRoom(room_id){
-    localStorage.setItem('selectedRoomId', room_id)
-    window.location.href = './room'
-  }
 
   return (
     <div>

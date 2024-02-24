@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useQuery, gql, useSubscription } from "@apollo/client";
-import NavBar from "./navbar";
+import {gql, useSubscription } from "@apollo/client";
 import "./room.css";
 import "./navbar.css"
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Import the whole Font Awesome library
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const MESSAGE_SUB = function (room_id) {
   return gql`
@@ -48,9 +46,7 @@ const Room = function () {
     }
   }, [messages]);
 
-  useEffect(() => {
-    fetchRoom();
-  }, []);
+
 
   const shareRoom = () => {
     fetch(process.env.REACT_APP_ENDPOINT + "/share-room", {
@@ -80,6 +76,11 @@ const Room = function () {
       });
   };
 
+  useEffect(() => {
+    fetchRoom();
+  }); // Assuming fetchRoom is stable and doesn't change
+  
+
   // setting subscription
   const { loading_ws, error_ws, data_ws } = useSubscription(MESSAGE_SUB(room_id), {
     onSubscriptionData: (data_ws) => {
@@ -91,7 +92,7 @@ const Room = function () {
     },
   });
 
-  const { rn_loading_ws, rn_error_ws, rn_data_ws } = useSubscription(ROOM_NOTIFICATION_SUB(room_id), {
+  const {rn_data_ws } = useSubscription(ROOM_NOTIFICATION_SUB(room_id), {
     onSubscriptionData: (data_ws) => {
       let message = rn_data_ws?.subscriptionData?.data?.message
       if (message) {
@@ -114,26 +115,6 @@ const Room = function () {
 
   if (loading_ws) return <p>Loading...</p>;
   if (error_ws) return <p>Error : {error_ws.message}</p>;
-  let message_html = messages.map(({ id, content, sender }) => (
-    <div>
-      {id === userId ? (
-        <div id="recieved-msg">
-          <p>
-            {sender}: {content}
-          </p>
-        </div>
-      ) : (
-        <div id="sent-msg">
-          <p>
-            {content}
-          </p>
-        </div>
-      )}
-    </div>
-  ));
-  if (messages.length === 0) {
-    message_html = <p>No messages yet.</p>;
-  }
 
   const sendMessage = () => {
     if (sendMessageText === "") {
@@ -219,7 +200,7 @@ const Room = function () {
           <div className="chat">
             <div className="messages">
               {messages.map((message) => (
-                <div key={message.id} className="message" id={message.sender == userId ? "sent" : "recieved"}>
+                <div key={message.id} className="message" id={message.sender === userId ? "sent" : "recieved"}>
                   <p>{message.content}</p>
                   <span>{message.sender}</span>
                 </div>
