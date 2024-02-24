@@ -2,4 +2,3 @@ node_modules
 build
 .firebase
 yarn.lock
-package-lock.json
