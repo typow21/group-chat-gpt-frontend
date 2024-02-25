@@ -68,7 +68,7 @@
 
 .message span {
   font-size: 14px;
-  color: #b4b4b4;
+  color: #888;
 }
 
 #message-spacer {
@@ -140,7 +140,7 @@ input:focus {
 
 #sent {
   text-align: right;
-  background-color: #006308;
+  background-color: #007009;
   color: white;
   /* Example color for sent messages */
   margin-left: auto;

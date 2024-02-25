@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import NavBar from './navbar';
 import './home.css';
+import { useNavigate } from "react-router-dom";
 
 function Home() {
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [roomName, setRoomName] = useState('');
   const [users, setUsers] = useState('');
@@ -97,8 +99,7 @@ function Home() {
               <div key={room.id} id="room">
                 <button className="room-delete-button" onClick={() => deleteRoom(room.id)}>X</button>
                 <div onClick={()=> {
-                    localStorage.setItem('selectedRoomId', room.id)
-                    window.location.href = './room';
+                  navigate("/room", { state: { "room_id": room.id } });              
                   }}>
                   <h3 id="roomName">{room.name}</h3>
                   <p id="roomCreator">Owner:{room.creator.username}</p>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {gql, useSubscription } from "@apollo/client";
+import { useLocation } from 'react-router-dom';
+
 import "./room.css";
 import "./navbar.css"
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Import the whole Font Awesome library
@@ -28,21 +30,22 @@ const ROOM_NOTIFICATION_SUB = function (room_id) {
 }
 
 const Room = function () {
+  let location = useLocation();
+  console.log("props", location.state)
+  let room_id = location.state.room_id
   const [messages, setMessages] = useState([]);
   const [room, setRoom] = useState();
   const [sendMessageText, setSendMessageText] = useState("");
   const [shareRoomUsername, setShareRoomUsername] = useState("");
   const [showPopup, setShowPopup] = useState(false);
-  let room_id = localStorage.getItem("selectedRoomId");
   let userId = localStorage.getItem("userId");
-  console.log("roomId", room_id);
 
   const messagesEndRef = useRef(null); // Create a ref for messages container
 
   // Add useEffect to scroll to the bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messagesEndRef.current.scrollIntoView({ behavior: "auto" });
     }
   }, [messages]);
 
@@ -57,28 +60,29 @@ const Room = function () {
       body: JSON.stringify({ username: shareRoomUsername, roomId: room_id }),
     });
   };
-  const fetchRoom = () => {
-    fetch(process.env.REACT_APP_ENDPOINT + "/room/" + room_id)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-
-        setRoom(data);
-        console.log("roomdata:", data);
-        setMessages([...messages, ...data.messages]);
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-      });
-  };
 
   useEffect(() => {
+    const fetchRoom = () => {
+      fetch(process.env.REACT_APP_ENDPOINT + "/room/" + room_id)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+  
+          setRoom(data);
+          console.log("roomdata:", data);
+          setMessages([...data.messages]);
+         
+        })
+        .catch((error) => {
+          console.error("There was a problem with the fetch operation:", error);
+        });
+    };
     fetchRoom();
-  }); // Assuming fetchRoom is stable and doesn't change
+  }, [room_id]); // Assuming fetchRoom is stable and doesn't change
   
 
   // setting subscription

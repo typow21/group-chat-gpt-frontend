@@ -45,7 +45,9 @@
     ]
   },
   "devDependencies": {
-    "eslint-plugin-jest": "^27.9.0",
-    "gh-pages": "^6.1.1"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/preset-react": "^7.23.3",
+    "babel-preset-react-app": "^10.0.1",
+    "eslint-plugin-jest": "^27.9.0"
   }
 }
