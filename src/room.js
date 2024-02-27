@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import {gql, useSubscription } from "@apollo/client";
+import { gql, useSubscription } from "@apollo/client";
 import { useLocation } from 'react-router-dom';
-
+import CodeBlock from "./codeBlock"
 import "./room.css";
 import "./navbar.css"
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Import the whole Font Awesome library
@@ -49,8 +49,6 @@ const Room = function () {
     }
   }, [messages]);
 
-
-
   const shareRoom = () => {
     fetch(process.env.REACT_APP_ENDPOINT + "/share-room", {
       method: "POST",
@@ -71,11 +69,9 @@ const Room = function () {
           return response.json();
         })
         .then((data) => {
-  
           setRoom(data);
           console.log("roomdata:", data);
           setMessages([...data.messages]);
-         
         })
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
@@ -84,7 +80,6 @@ const Room = function () {
     fetchRoom();
   }, [room_id]); // Assuming fetchRoom is stable and doesn't change
   
-
   // setting subscription
   const { loading_ws, error_ws, data_ws } = useSubscription(MESSAGE_SUB(room_id), {
     onSubscriptionData: (data_ws) => {
@@ -167,55 +162,66 @@ const Room = function () {
     setShowPopup(!showPopup);
   };
 
+  // Function to identify and wrap code blocks
+  const renderMessageContent = (content) => {
+    const segments = content.split(/(```\w+\n[\s\S]+?\n```)/);
+  
+    return (
+      <>
+        {segments.map((segment, index) => {
+          if (segment.startsWith("```")) {
+            const language = segment.match(/^```(\w+)\n/)[1];
+            const code = segment.replace(/^```(\w+)\n/, "").replace(/```$/, "");
+            return <CodeBlock key={index} language={language} code={code} />;
+          } else {
+            return <p key={index}>{segment}</p>;
+          }
+        })}
+      </>
+    );
+  };
 
   return (
     <div>
       <nav className="navbar">
         <div className="navbar-brand">
-
-              <Link id = "home" to="/">Home</Link>
-              </div>
-              <div id="roomDetails">
-        <h3 id="roomName">{room != null ? room.name : "No room name"}</h3>
-        <button id="shareRoomBnt" onClick={togglePopup}><i className="fas fa-user-plus"></i></button>
-      </div>
+          <Link id="home" to="/">Home</Link>
+        </div>
+        <div id="roomDetails">
+          <h3 id="roomName">{room != null ? room.name : "No room name"}</h3>
+          <button id="shareRoomBnt" onClick={togglePopup}><i className="fas fa-user-plus"></i></button>
+        </div>
       </nav>
       {showPopup && (
         <div className="popup-background">
           <div className="popup">
-              <h3>Invite user</h3>
-              <input
-                type="text"
-                id="shareRoomUsername"
-                placeholder="type username here"
-                value={shareRoomUsername}
-                onChange={(e) => setShareRoomUsername(e.target.value)}
-              />
-              <button onClick={shareRoom} className="submit-button">Submit</button>
-              <button onClick={togglePopup} className="close-button">Close</button>
+            <h3>Invite user</h3>
+            <input
+              type="text"
+              id="shareRoomUsername"
+              placeholder="type username here"
+              value={shareRoomUsername}
+              onChange={(e) => setShareRoomUsername(e.target.value)}
+            />
+            <button onClick={shareRoom} className="submit-button">Submit</button>
+            <button onClick={togglePopup} className="close-button">Close</button>
           </div>
         </div>
       )}
       <div className="room-container">
-
-
         <div className="chat-container">
-
           <div className="chat">
             <div className="messages">
               {messages.map((message) => (
                 <div key={message.id} className="message" id={message.sender === userId ? "sent" : "recieved"}>
-                  <p>{message.content}</p>
+                  {renderMessageContent(message.content)}
                   <span>{message.sender}</span>
                 </div>
               ))}
               <div ref={messagesEndRef} />
             </div>
-            <div id="message-spacer">
-              
-            </div>
+            <div id="message-spacer"></div>
             <div className="input-container">
-              {/* <div>✨</div> */}
               <input
                 type="text"
                 id="sendMsgInput"
@@ -224,9 +230,7 @@ const Room = function () {
                 onChange={(e) => setSendMessageText(e.target.value)}
                 onKeyPress={handleKeyPress} // Call handleKeyPress function on key press
               />
-              
               <i onClick={sendMessage} id ="send-btn" className="fa fa-arrow-up"></i>
-              
             </div>
           </div>
         </div>
