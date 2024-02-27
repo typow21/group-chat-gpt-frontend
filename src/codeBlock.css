@@ -1,34 +1,65 @@
+/* Complete CSS for CodeBlock component */
+
+/* Container for the entire code block */
 .code-block-container {
-    position: relative;
-  }
-  
-  .copy-button {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    padding: 5px 10px;
-    background-color: #eee;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .copy-button:hover {
-    background-color: #ddd;
-  }
-  
-  .code-block {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-  }
-  
-  pre {
-    padding: 10px;
-    margin: 0;
-  }
-  
-  code {
-    font-family: 'Courier New', Courier, monospace;
-  }
-  
+  position: relative;
+  border-radius: 4px;
+  color: #fff; /* White text */
+  margin-bottom: 1rem;
+  background-color: #282c34; /* Dark background color */
+}
+
+/* Header for displaying the language */
+.code-block-header {
+  display: flex; /* Use flexbox for layout */
+  justify-content: space-between; /* Distribute space between elements */
+  align-items: center; /* Align items vertically */
+  background-color: #1a1a1a; /* Dark gray background */
+  color: #fff; /* White text */
+  padding: 8px 16px; /* Adjust padding as needed */
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  font-weight: bold;
+}
+
+/* Language display */
+.language-display {
+  flex-grow: 0; /* Allow language display to take remaining space */
+}
+
+/* Copy button style */
+.copy-button {
+  padding: 5px;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  background-color: #ddd;
+}
+
+/* Styling for the code block itself */
+.code-block {
+  padding: 0;
+  margin: 0;
+}
+
+/* Styling for <pre> elements */
+pre {
+  margin: 0;
+}
+
+/* Styling for <code> elements */
+code {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Label for indicating copy success */
+.copied-label {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.9); /* White with slight transparency */
+  color: #000; /* Black text */
+  padding: 5px;
+  border-radius: 4px;
+}
