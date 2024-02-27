@@ -211,13 +211,15 @@ const Room = function () {
               ))}
               <div ref={messagesEndRef} />
             </div>
-            <div id="message-spacer"></div>
+            <div id="message-spacer">
+              
+            </div>
             <div className="input-container">
               {/* <div>✨</div> */}
               <input
                 type="text"
                 id="sendMsgInput"
-                placeholder="Type your message..."
+                placeholder="Type '@chatgpt' to prompt ChatGPT!"
                 value={sendMessageText}
                 onChange={(e) => setSendMessageText(e.target.value)}
                 onKeyPress={handleKeyPress} // Call handleKeyPress function on key press

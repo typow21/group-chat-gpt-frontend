@@ -12,6 +12,7 @@ body {
     width: 100%;
     z-index: 1000;
     height: 5vh;
+    box-shadow: 5px 0px 5px rgb(44, 44, 44);
 }
 
 .navbar-brand {

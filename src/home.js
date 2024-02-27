@@ -85,11 +85,10 @@ function Home() {
     });
   };
 
-
+  
   return (
     <div>
       <NavBar />
-
       <div id="roomList">
         <h1>Room List</h1>
         <button className="create-room-button" onClick={togglePopup}>Create Room</button>
