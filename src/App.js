@@ -11,7 +11,7 @@ function App() {
       <Routes basename={process.env.PUBLIC_URL}>
         <Route>
           <Route index element={<Home />} />
-          <Route path="room" element={<Room />} />
+          <Route path="/room/:room_id" element={<Room />} />
           <Route path="login" element={<LoginForm />} />
           <Route path="signup" element={<SignupForm/>}></Route>
           {/* <Route path="contact" element={<Contact />} /> */}

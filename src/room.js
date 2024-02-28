@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { gql, useSubscription } from "@apollo/client";
-import { useLocation } from 'react-router-dom';
 import CodeBlock from "./codeBlock"
 import "./room.css";
 import "./navbar.css"
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Import the whole Font Awesome library
 import { Link } from 'react-router-dom';
+import checkAuth from "./navbar"
 
-const MESSAGE_SUB = function (room_id) {
+import { useParams } from 'react-router-dom';
+
+const MESSAGE_SUB = function (room_id, user_id ) {
   return gql`
     subscription Chat {
-      messages(roomId: "${room_id}") {
+      messages(roomId: "${room_id}", userId: "${user_id}") {
           id
           content
           sender
@@ -30,9 +32,8 @@ const ROOM_NOTIFICATION_SUB = function (room_id) {
 }
 
 const Room = function () {
-  let location = useLocation();
-  console.log("props", location.state)
-  let room_id = location.state.room_id
+  checkAuth();
+  let { room_id } = useParams();
   const [messages, setMessages] = useState([]);
   const [room, setRoom] = useState();
   const [sendMessageText, setSendMessageText] = useState("");
@@ -81,7 +82,7 @@ const Room = function () {
   }, [room_id]); // Assuming fetchRoom is stable and doesn't change
   
   // setting subscription
-  const { loading_ws, error_ws, data_ws } = useSubscription(MESSAGE_SUB(room_id), {
+  const { loading_ws, error_ws, data_ws } = useSubscription(MESSAGE_SUB(room_id, userId), {
     onSubscriptionData: (data_ws) => {
       if (data_ws?.subscriptionData?.data?.messages) {
         console.log("data", data_ws?.subscriptionData?.data?.messages);

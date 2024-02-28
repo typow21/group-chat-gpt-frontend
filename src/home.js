@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import NavBar from './navbar';
 import './home.css';
 import { useNavigate } from "react-router-dom";
+import checkAuth from "./navbar"
 
 function Home() {
+  checkAuth();
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [roomName, setRoomName] = useState('');
@@ -98,7 +100,7 @@ function Home() {
               <div key={room.id} id="room">
                 <button className="room-delete-button" onClick={() => deleteRoom(room.id)}>X</button>
                 <div onClick={()=> {
-                  navigate("/room", { state: { "room_id": room.id } });              
+                  navigate(`/room/${room.id}`);       
                   }}>
                   <h3 id="roomName">{room.name}</h3>
                   <p id="roomCreator">Owner:{room.creator.username}</p>
