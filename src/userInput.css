@@ -1,0 +1,18 @@
+.userSelectDropdown{
+    margin-bottom: 10px;
+    margin-top: -10px;
+}
+
+.userSelection{
+    border: 1px solid black;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.userSelection:hover{
+    border: 1px solid black;
+    padding: 5px;
+    background-color: #007009;
+    cursor: pointer;
+    color: white;
+}
