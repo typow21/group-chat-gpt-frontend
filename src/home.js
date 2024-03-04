@@ -120,8 +120,8 @@ function Home() {
             <form onSubmit={handleRoomCreation} id="roomCreationForm">
               <label htmlFor="roomName">Room Name:</label>
               <input type="text" id="roomName" name="roomName" value={roomName} onChange={(e) => setRoomName(e.target.value)} required />
-              {/* <label htmlFor="users">Users:</label>
-              <input type="text" id="users" name="users" value={users} onChange={(e) => setUsers(e.target.value)} /> */}
+              <label htmlFor="users">Users:</label>
+              <input type="text" id="users" name="users" value={users} onChange={(e) => setUsers(e.target.value)} />
               <div className="button-group">
                 <button type="submit" className='submit-button'>Create Room</button>
                 <button className="close-button" onClick={togglePopup}>Close</button>
