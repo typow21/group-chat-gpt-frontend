@@ -20,7 +20,7 @@ function Navbar() {
     return (
         <nav className="navbar">
             <div className="navbar-brand">
-                <Link to="/">GroupChat GPT</Link>
+                <Link to="/">GroupGPT</Link>
             </div>
             <div className="navbar-links">
                 <p><b>{localStorage.getItem('userId')}</b></p>

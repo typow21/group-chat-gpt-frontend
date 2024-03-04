@@ -40,6 +40,7 @@ function Home() {
     .then(data => {
       setRooms([...rooms, data]);
       togglePopup(); // Close the popup after room creation
+      navigate("room/"+data.id)
     })
     .catch(error => {
       console.error('There was a problem creating the room:', error);
@@ -92,7 +93,7 @@ function Home() {
     <div>
       <NavBar />
       <div id="roomList">
-        <h1>Room List</h1>
+        <h1>Chat List</h1>
         <button className="create-room-button" onClick={togglePopup}>Create Room</button>
         <ul id="rooms">
           {rooms.length === 0 ? <p>No rooms available.</p> :
@@ -115,12 +116,12 @@ function Home() {
       {showPopup && (
         <div className="popup-background">
           <div className="popup">
-            <h2>Create a Room</h2>
+            <h2>Start a chat</h2>
             <form onSubmit={handleRoomCreation} id="roomCreationForm">
               <label htmlFor="roomName">Room Name:</label>
               <input type="text" id="roomName" name="roomName" value={roomName} onChange={(e) => setRoomName(e.target.value)} required />
-              <label htmlFor="users">Users:</label>
-              <input type="text" id="users" name="users" value={users} onChange={(e) => setUsers(e.target.value)} />
+              {/* <label htmlFor="users">Users:</label>
+              <input type="text" id="users" name="users" value={users} onChange={(e) => setUsers(e.target.value)} /> */}
               <div className="button-group">
                 <button type="submit" className='submit-button'>Create Room</button>
                 <button className="close-button" onClick={togglePopup}>Close</button>
