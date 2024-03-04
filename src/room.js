@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { gql, useSubscription } from "@apollo/client";
-import CodeBlock from "./codeBlock"
+import CodeBlock from "./codeBlock";
 import "./room.css";
-import "./navbar.css"
-import '@fortawesome/fontawesome-free/css/all.min.css'; // Import the whole Font Awesome library
-import { Link } from 'react-router-dom';
-import checkAuth from "./navbar"
-import UserInput from "./userInput"
-import { useParams } from 'react-router-dom';
+import "./navbar.css";
+import "@fortawesome/fontawesome-free/css/all.min.css"; // Import the whole Font Awesome library
+import { Link } from "react-router-dom";
+import checkAuth from "./navbar";
+import UserInput from "./userInput";
+import { useParams } from "react-router-dom";
 
-const MESSAGE_SUB = function (room_id, user_id ) {
+const MESSAGE_SUB = function (room_id, user_id) {
   return gql`
     subscription Chat {
       messages(roomId: "${room_id}", userId: "${user_id}") {
@@ -29,23 +29,22 @@ const ROOM_NOTIFICATION_SUB = function (room_id) {
     }
   }
 `;
-}
+};
 
 const Room = function () {
   checkAuth();
   let { room_id } = useParams();
   const [messages, setMessages] = useState([]);
   const [room, setRoom] = useState();
+  const [shareRoomUsername, setShareRoomUsername] = useState(""); // Define shareRoomUsername state
   const [sendMessageText, setSendMessageText] = useState("");
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [showUsersPopup, setShowUsersPopup] = useState(false);
   let userId = localStorage.getItem("userId");
-  const [shareRoomUsername, setShareRoomUsername] = useState("");
   const [profiles, setProfiles] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const messagesEndRef = useRef(null); // Create a ref for messages container
-
-  // Add useEffect to scroll to the bottom when messages change
+  
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "auto" });
@@ -63,7 +62,7 @@ const Room = function () {
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      toggleSharePopup()
+      toggleSharePopup();
       return response.json();
     });
   };
@@ -79,7 +78,6 @@ const Room = function () {
         })
         .then((data) => {
           setRoom(data);
-          console.log("roomdata:", data);
           setMessages([...data.messages]);
         })
         .catch((error) => {
@@ -87,39 +85,30 @@ const Room = function () {
         });
     };
     fetchRoom();
-  }, [room_id]); // Assuming fetchRoom is stable and doesn't change
-  
-  // setting subscription
+  }, [room_id]);
+
   const { loading_ws, error_ws, data_ws } = useSubscription(MESSAGE_SUB(room_id, userId), {
     onSubscriptionData: (data_ws) => {
       if (data_ws?.subscriptionData?.data?.messages) {
-        console.log("data", data_ws?.subscriptionData?.data?.messages);
         setMessages([...messages, data_ws?.subscriptionData?.data?.messages]);
-        console.log("msgs", messages);
       }
     },
   });
 
-  const {rn_data_ws } = useSubscription(ROOM_NOTIFICATION_SUB(room_id), {
+  const { rn_data_ws } = useSubscription(ROOM_NOTIFICATION_SUB(room_id), {
     onSubscriptionData: (data_ws) => {
-      let message = rn_data_ws?.subscriptionData?.data?.message
+      let message = rn_data_ws?.subscriptionData?.data?.message;
       if (message) {
-        console.log("data", message);
         setMessages([...messages, message]);
-        console.log("msg", message);
       }
     },
   });
 
-  // setting up trigger for data change
   useEffect(() => {
-    console.log("35:", data_ws);
     if (data_ws?.subscriptionData?.data?.messages) {
       setMessages([data_ws.subscriptionData.data.messages]);
     }
   }, [data_ws]);
-
-  // this.LatestBlogs({ chatroom: "newBlog" });
 
   if (loading_ws) return <p>Loading...</p>;
   if (error_ws) return <p>Error : {error_ws.message}</p>;
@@ -150,8 +139,7 @@ const Room = function () {
           alert(data.error);
         } else {
           setMessages([...messages, data]);
-          setSendMessageText(""); // Clear input field after sending message
-          console.log("data 112", data);
+          setSendMessageText("");
         }
       })
       .catch((error) => {
@@ -159,10 +147,9 @@ const Room = function () {
       });
   };
 
-  // Handle Enter key press
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Prevent form submission
+      event.preventDefault();
       sendMessage();
     }
   };
@@ -173,8 +160,8 @@ const Room = function () {
 
   const toggleUsersPopup = () => {
     setShowUsersPopup(!showUsersPopup);
-  }
-  // Function to identify and wrap code blocks
+  };
+
   const renderMessageContent = (content) => {
     const segments = content.split(/(```\w+\n[\s\S]+?\n```)/);
   
@@ -193,31 +180,37 @@ const Room = function () {
     );
   };
 
-  const handleInputChange = (value) => {
-    setShareRoomUsername(value);
-  };
-
   const fetchProfiles = () => {
-    const response = fetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${shareRoomUsername}`
-    ).then((response) => {
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
+    const response = fetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${shareRoomUsername}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
     })
     .then((data) => {
-        setProfiles(response.data);
-        setShowDropdown(true);
+      setProfiles(response.data);
+      setShowDropdown(true);
     })
     .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-      });
-    }
+      console.error("There was a problem with the fetch operation:", error);
+    });
+  };
 
   const handleSelection = (username) => {
     setShareRoomUsername(username);
     setShowDropdown(false);
   };
+
+  const handleInputChange = (value) => {
+    setShareRoomUsername(value);
+  };
+
+  function addAI() {
+    let input = document.getElementById("sendMsgInput");
+    input.value += "@chatgpt ";
+    input.focus();
+  }
 
   return (
     <div>
@@ -236,32 +229,43 @@ const Room = function () {
           <div className="popup">
             <h3>Invite user</h3>
             <UserInput
-             value={shareRoomUsername}
-             onChange={handleInputChange}
-             fetchProfiles={fetchProfiles}
-             profiles={profiles}
-             showDropdown={showDropdown}
-             onSelect={handleSelection}
-             />
-            <button onClick={shareRoom} className="submit-button">Submit</button>
-            <button onClick={toggleSharePopup} className="close-button">Close</button>
+              value={shareRoomUsername}
+              onChange={handleInputChange}
+              fetchProfiles={fetchProfiles}
+              profiles={profiles}
+              showDropdown={showDropdown}
+              onSelect={handleSelection}
+              setShareRoomUsername={setShareRoomUsername} // Pass setShareRoomUsername here
+            />
+            <button onClick={shareRoom} className="submit-button">
+              Submit
+            </button>
+            <button onClick={toggleSharePopup} className="close-button">
+              Close
+            </button>
           </div>
         </div>
       )}
       {showUsersPopup && (
         <div className="popup-background">
-        <div className="popup">
-          <h3>Users</h3>
-          <div className="users">
-          {Object.keys(room.users).map((key) => (
-            <div key={room.users[key].id}>
-              <p>{room.users[key].first_name} {room.users[key].last_name} {room.users[key].username} <b>{room.creator.id == key ? "Admin": "member"}</b> </p> 
+          <div className="popup">
+            <h3>Users</h3>
+            <div className="users">
+              {Object.keys(room.users).map((key) => (
+                <div key={room.users[key].id}>
+                  <p>
+                    {room.users[key].first_name} {room.users[key].last_name}{" "}
+                    {room.users[key].username}{" "}
+                    <b>{room.creator.id === key ? "Admin" : "member"}</b>{" "}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
+            <button onClick={toggleUsersPopup} className="close-button">
+              Close
+            </button>
           </div>
-          <button onClick={toggleUsersPopup} className="close-button">Close</button>
         </div>
-      </div>
       )}
       <div className="room-container">
         <div className="chat-container">
@@ -277,6 +281,8 @@ const Room = function () {
             </div>
             <div id="message-spacer"></div>
             <div className="input-container">
+            
+            <i onClick={addAI} id = "ai-btn">✨</i>
               <input
                 type="text"
                 id="sendMsgInput"

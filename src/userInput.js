@@ -1,65 +1,64 @@
 import React, { useState, useEffect } from "react";
-import "./userInput.css"
-const UserInput = function () {
-  const [shareRoomUsername, setShareRoomUsername] = useState("");
+import "./userInput.css";
+
+const UserInput = function (props) {
   const [profiles, setProfiles] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const fetchProfiles = () => {
-        const response = fetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${shareRoomUsername}`
-        ).then((response) => {
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-              }
-              return response.json();
+      fetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${props.value}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
         })
         .then((data) => {
-            setProfiles(data);
-            console.log("profiles", profiles)
-            setShowDropdown(true);
+          setProfiles(data);
+          setShowDropdown(true);
         })
         .catch((error) => {
-            console.error("There was a problem with the fetch operation:", error);
-          });
-        }
+          console.error("There was a problem with the fetch operation:", error);
+        });
+    };
 
-    if (shareRoomUsername.trim() !== "") {
+    if (props.value.trim() !== "") {
       fetchProfiles();
     } else {
       setProfiles([]);
       setShowDropdown(false);
     }
-  }, [shareRoomUsername]);
+  }, [props.value]);
 
-  const handleInput = (event) => {
+  const handleInputChange = (event) => {
     const { value } = event.target;
-    setShareRoomUsername(value);
+    props.onChange(value);
   };
 
   const handleSelection = (username) => {
-    setShareRoomUsername(username);
+    props.onSelect(username);
     setShowDropdown(false);
   };
 
   return (
-    <div className={showDropdown && profiles.length > 0 ? "userSelectDropdown": ""}>
+    <div className={showDropdown && profiles.length > 0 ? "userSelectDropdown" : ""}>
       <input
         type="text"
         id="shareRoomUsername"
         placeholder="type username here"
-        value={shareRoomUsername}
-        onChange={handleInput}
+        value={props.value}
+        onChange={handleInputChange}
       />
       {showDropdown && profiles.length > 0 && (
         <div>
           {profiles.map((profile) => (
-            <div 
+            <div
               key={profile.id}
-              onClick={() => setShareRoomUsername(profile.username)}
+              onClick={() => handleSelection(profile.username)}
               className="userSelection"
             >
-              {profile.first_name} {profile.last_name} - {profile.username} 
+              {profile.first_name} {profile.last_name} - {profile.username}
             </div>
           ))}
         </div>

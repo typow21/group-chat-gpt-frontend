@@ -152,3 +152,14 @@ input:focus {
   /* Example color for received messages */
   margin-left: auto;
 }
+
+#ai-btn{
+  border-radius: 5px ;
+  background-color: black;
+  font-size: x-large;
+  padding: 5px;
+}
+
+#ai-btn:hover{
+  cursor: pointer;
+}
