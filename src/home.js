@@ -154,13 +154,14 @@ function Home() {
   }, []);
 
   useEffect(() => {
+    // Capture the current ref value to avoid stale ref warnings in cleanup
+    const timerRef = debounceTimer.current;
     return () => {
-      const timer = debounceTimer.current;
-      if (timer) {
-        clearTimeout(timer);
+      if (timerRef) {
+        clearTimeout(timerRef);
       }
     };
-  }, [debounceTimer]);
+  }, []);
 
   const fetchRooms = () => {
     setIsLoading(true);
