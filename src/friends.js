@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import NavBar from './navbar';
 import './friends.css';
 import checkAuth from "./navbar";
@@ -12,12 +12,7 @@ function Friends() {
   const [activeTab, setActiveTab] = useState('friends'); // 'friends', 'requests', 'add'
   const userId = localStorage.getItem('userId');
 
-  useEffect(() => {
-    fetchFriends();
-    fetchRequests();
-  }, []);
-
-  const fetchFriends = () => {
+  const fetchFriends = useCallback(() => {
     fetch(`${process.env.REACT_APP_ENDPOINT}/friends/${userId}`)
       .then(res => {
         if (!res.ok) {
@@ -30,9 +25,9 @@ function Friends() {
         console.error(err);
         setFriends([]);
       });
-  };
+  }, [userId]);
 
-  const fetchRequests = () => {
+  const fetchRequests = useCallback(() => {
     fetch(`${process.env.REACT_APP_ENDPOINT}/friend-requests/${userId}`)
       .then(res => {
         if (!res.ok) {
@@ -45,7 +40,12 @@ function Friends() {
         console.error(err);
         setRequests([]);
       });
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchFriends();
+    fetchRequests();
+  }, [fetchFriends, fetchRequests]);
 
   const handleSearch = (value) => {
     setUserSearch(value);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { gql, useSubscription } from "@apollo/client";
 import CodeBlock from "./codeBlock";
 import "./room.css";
@@ -42,22 +42,21 @@ const Room = function () {
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [showUsersPopup, setShowUsersPopup] = useState(false);
   let userId = localStorage.getItem("userId");
-  const [profiles, setProfiles] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const messagesEndRef = useRef(null);
   const { isDarkMode, toggleTheme } = useTheme();
   const [friends, setFriends] = useState([]);
 
-  useEffect(() => {
-    fetchFriends();
-  }, []);
-
-  const fetchFriends = () => {
+  const fetchFriends = useCallback(() => {
     fetch(`${process.env.REACT_APP_ENDPOINT}/friends/${userId}`)
       .then(res => res.json())
       .then(data => setFriends(data))
       .catch(err => console.error(err));
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchFriends();
+  }, [fetchFriends]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -344,23 +343,6 @@ const Room = function () {
     }
 
     return parts.length > 0 ? parts : text;
-  };
-
-  const fetchProfiles = () => {
-    fetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${shareRoomUsername}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setProfiles(data);
-        setShowDropdown(true);
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-      });
   };
 
   const handleSelection = (username) => {

@@ -155,11 +155,12 @@ function Home() {
 
   useEffect(() => {
     return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
+      const timer = debounceTimer.current;
+      if (timer) {
+        clearTimeout(timer);
       }
     };
-  }, []);
+  }, [debounceTimer]);
 
   const fetchRooms = () => {
     setIsLoading(true);

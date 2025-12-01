@@ -1,10 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './notifications.css';
 
 function Notifications({ userId }) {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
+
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${userId}`);
+            if (!response.ok) {
+                console.error('Failed to fetch notifications:', response.status);
+                setNotifications([]);
+                return;
+            }
+            const data = await response.json();
+            setNotifications(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+            setNotifications([]);
+        }
+    }, [userId]);
+
+    const fetchUnreadCount = useCallback(async () => {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_ENDPOINT}/unread-count/${userId}`);
+            if (!response.ok) {
+                setUnreadCount(0);
+                return;
+            }
+            const data = await response.json();
+            setUnreadCount(data.count || 0);
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+            setUnreadCount(0);
+        }
+    }, [userId]);
 
     useEffect(() => {
         if (userId) {
@@ -31,39 +62,7 @@ function Notifications({ userId }) {
                 window.removeEventListener('refreshNotifications', handleRefresh);
             };
         }
-    }, [userId, showDropdown]);
-
-    const fetchNotifications = async () => {
-        try {
-            const response = await fetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${userId}`);
-            if (!response.ok) {
-                console.error('Failed to fetch notifications:', response.status);
-                setNotifications([]);
-                return;
-            }
-            const data = await response.json();
-            setNotifications(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error('Error fetching notifications:', error);
-            setNotifications([]);
-        }
-    };
-
-    const fetchUnreadCount = async () => {
-        try {
-            const response = await fetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${userId}/count`);
-            if (!response.ok) {
-                console.error('Failed to fetch unread count:', response.status);
-                setUnreadCount(0);
-                return;
-            }
-            const data = await response.json();
-            setUnreadCount(data.count || 0);
-        } catch (error) {
-            console.error('Error fetching unread count:', error);
-            setUnreadCount(0);
-        }
-    };
+    }, [userId, showDropdown, fetchNotifications, fetchUnreadCount]);
 
     const markAsRead = async (notificationId) => {
         try {
