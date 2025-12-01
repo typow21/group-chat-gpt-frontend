@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import NavBar from './navbar';
 import './friends.css';
 import checkAuth from "./navbar";
@@ -12,7 +12,12 @@ function Friends() {
   const [activeTab, setActiveTab] = useState('friends'); // 'friends', 'requests', 'add'
   const userId = localStorage.getItem('userId');
 
-  const fetchFriends = useCallback(() => {
+  useEffect(() => {
+    fetchFriends();
+    fetchRequests();
+  }, []);
+
+  const fetchFriends = () => {
     fetch(`${process.env.REACT_APP_ENDPOINT}/friends/${userId}`)
       .then(res => {
         if (!res.ok) {
@@ -25,9 +30,9 @@ function Friends() {
         console.error(err);
         setFriends([]);
       });
-  }, [userId]);
+  };
 
-  const fetchRequests = useCallback(() => {
+  const fetchRequests = () => {
     fetch(`${process.env.REACT_APP_ENDPOINT}/friend-requests/${userId}`)
       .then(res => {
         if (!res.ok) {
@@ -40,12 +45,7 @@ function Friends() {
         console.error(err);
         setRequests([]);
       });
-  }, [userId]);
-
-  useEffect(() => {
-    fetchFriends();
-    fetchRequests();
-  }, [fetchFriends, fetchRequests]);
+  };
 
   const handleSearch = (value) => {
     setUserSearch(value);
@@ -171,29 +171,63 @@ function Friends() {
 
           {activeTab === 'add' && (
             <div className="add-friend-section">
-              <input
-                type="text"
-                placeholder="Search users by name or username..."
-                value={userSearch}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="search-input"
-              />
-              <div className="search-results">
-                {searchResults.map(user => (
-                  <div key={user.id} className="friend-card">
-                    <div className="avatar">
-                      {user.first_name?.[0] || '?'}{user.last_name?.[0] || '?'}
-                    </div>
-                    <div className="info">
-                      <h3>{user.first_name} {user.last_name}</h3>
-                      <p>@{user.username}</p>
-                    </div>
-                    <button onClick={() => sendRequest(user.id)} className="add-btn">
-                      Add Friend
-                    </button>
-                  </div>
-                ))}
+              <div className="search-input-wrapper">
+                <span className="search-icon">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search by name or username..."
+                  value={userSearch}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="search-input"
+                  autoComplete="off"
+                />
+                {userSearch && (
+                  <button
+                    className="clear-search-btn"
+                    onClick={() => {
+                      setUserSearch('');
+                      setSearchResults([]);
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
               </div>
+
+              {userSearch === '' ? (
+                <div className="search-prompt">
+                  <div className="search-prompt-icon">👥</div>
+                  <h3>Find Your Friends</h3>
+                  <p>Search for people by their name or username to send them a friend request.</p>
+                </div>
+              ) : searchResults.length === 0 ? (
+                <div className="no-results-state">
+                  <div className="no-results-icon">😕</div>
+                  <h3>No users found</h3>
+                  <p>We couldn't find anyone matching "<strong>{userSearch}</strong>"</p>
+                  <p className="hint">Try searching with a different name or username</p>
+                </div>
+              ) : (
+                <div className="search-results">
+                  <div className="results-header">
+                    <span className="results-count">{searchResults.length} {searchResults.length === 1 ? 'person' : 'people'} found</span>
+                  </div>
+                  {searchResults.map(user => (
+                    <div key={user.id} className="friend-card">
+                      <div className="avatar">
+                        {user.first_name?.[0] || '?'}{user.last_name?.[0] || '?'}
+                      </div>
+                      <div className="info">
+                        <h3>{user.first_name} {user.last_name}</h3>
+                        <p>@{user.username}</p>
+                      </div>
+                      <button onClick={() => sendRequest(user.id)} className="add-btn">
+                        <span className="btn-icon">+</span> Add Friend
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

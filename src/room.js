@@ -218,21 +218,28 @@ const Room = function () {
             {isDarkMode ? '☀️' : '🌙'}
           </button>
           <div id="roomDetails">
-          <h3 id="roomName">{room != null ? room.name : "Loading..."}</h3>
-          <button id="shareRoomBnt" onClick={toggleSharePopup} title="Invite User">
-            <i className="fas fa-user-plus"></i>
-          </button>
-          <button id="shareRoomBnt" onClick={toggleUsersPopup} title="View Members">
-            <i className="fas fa-users"></i>
-          </button>
-        </div>
+            <h3 id="roomName">{room != null ? room.name : "Loading..."}</h3>
+            <button id="shareRoomBnt" onClick={toggleSharePopup} title="Invite User">
+              <i className="fas fa-user-plus"></i>
+            </button>
+            <button id="shareRoomBnt" onClick={toggleUsersPopup} title="View Members">
+              <i className="fas fa-users"></i>
+            </button>
+          </div>
         </div>
       </nav>
 
       {showSharePopup && (
         <div className="popup-background" onClick={toggleSharePopup}>
           <div className="popup" onClick={e => e.stopPropagation()}>
-            <h3>Invite User</h3>
+            <h3>Invite to Chat</h3>
+            <p className="popup-description">
+              Search for a friend to invite them to this conversation.
+              <br />
+              <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.5rem' }}>
+                Note: You can only invite users who are already your friends.
+              </small>
+            </p>
             <UserInput
               value={shareRoomUsername}
               onChange={handleInputChange}

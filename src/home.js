@@ -154,11 +154,9 @@ function Home() {
   }, []);
 
   useEffect(() => {
-    // Capture the current ref value to avoid stale ref warnings in cleanup
-    const timerRef = debounceTimer.current;
     return () => {
-      if (timerRef) {
-        clearTimeout(timerRef);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
       }
     };
   }, []);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './signup.css'; // Import CSS file for styling
+import Logo from './LogoComponent';
 
 function SignupForm() {
     const [formData, setFormData] = useState({
@@ -53,40 +54,83 @@ function SignupForm() {
         <div className="signup-page">
             <div className="signup-form-container glass-panel fade-in">
                 <div className="signup-header">
-                    <h1 className="text-gradient">Create Account</h1>
-                    <p>Join us to start chatting</p>
+                    <Logo style={{ width: '64px', height: '64px', color: 'var(--primary-color)', marginBottom: '1rem' }} />
+                    <h1 className="text-gradient">Join GroupChatGPT</h1>
+                    <p>Create your account to start chatting</p>
                 </div>
 
                 <form className="signup-form" onSubmit={handleSubmit}>
                     <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="firstName">First Name</label>
-                            <input type="text" id="firstName" value={formData.firstName} onChange={handleChange} required />
+                            <input
+                                type="text"
+                                id="firstName"
+                                value={formData.firstName}
+                                onChange={handleChange}
+                                required
+                                autoComplete="given-name"
+                            />
                         </div>
                         <div className="form-group">
                             <label htmlFor="lastName">Last Name</label>
-                            <input type="text" id="lastName" value={formData.lastName} onChange={handleChange} required />
+                            <input
+                                type="text"
+                                id="lastName"
+                                value={formData.lastName}
+                                onChange={handleChange}
+                                required
+                                autoComplete="family-name"
+                            />
                         </div>
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
-                        <input type="text" id="username" value={formData.username} onChange={handleChange} required />
+                        <input
+                            type="text"
+                            id="username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            required
+                            autoComplete="username"
+                        />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
-                        <input type="email" id="email" value={formData.email} onChange={handleChange} required />
+                        <input
+                            type="email"
+                            id="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                            autoComplete="email"
+                        />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="phoneNumber">Phone Number</label>
-                        <input type="text" id="phoneNumber" value={formData.phoneNumber} onChange={handleChange} required />
+                        <input
+                            type="tel"
+                            id="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleChange}
+                            required
+                            autoComplete="tel"
+                        />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="password">Password</label>
-                        <input type="password" id="password" value={formData.password} onChange={handleChange} required />
+                        <input
+                            type="password"
+                            id="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                            autoComplete="new-password"
+                        />
                     </div>
 
                     <button

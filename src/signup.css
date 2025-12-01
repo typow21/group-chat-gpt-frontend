@@ -132,4 +132,12 @@ body.light-mode .signup-form input::placeholder {
     .form-row {
         grid-template-columns: 1fr;
     }
+
+    .signup-form-container {
+        padding: 1.5rem;
+    }
+
+    .signup-header h1 {
+        font-size: 1.75rem;
+    }
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './login.css'; // Import CSS file for styling
+import Logo from './LogoComponent';
 
 function LoginForm() {
     const [username, setUsername] = useState('');
@@ -52,7 +53,8 @@ function LoginForm() {
         <div className="login-page">
             <div className="login-form-container glass-panel fade-in">
                 <div className="login-header">
-                    <h1 className="text-gradient">Welcome Back</h1>
+                    <Logo style={{ width: '64px', height: '64px', color: 'var(--primary-color)', marginBottom: '1rem' }} />
+                    <h1 className="text-gradient">GroupChatGPT</h1>
                     <p>Enter your credentials to access the chat</p>
                 </div>
 
@@ -66,6 +68,7 @@ function LoginForm() {
                             onChange={handleUsernameChange}
                             placeholder="Enter your username"
                             required
+                            autoComplete="username"
                         />
                     </div>
 
@@ -78,6 +81,7 @@ function LoginForm() {
                             onChange={handlePasswordChange}
                             placeholder="Enter your password"
                             required
+                            autoComplete="current-password"
                         />
                     </div>
 

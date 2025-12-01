@@ -46,6 +46,22 @@
     overflow: hidden;
 }
 
+@media (max-width: 768px) {
+    .notifications-dropdown {
+        position: fixed;
+        top: 60px;
+        /* Below navbar */
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 80vh;
+        margin: 0;
+        border-radius: 0 0 16px 16px;
+        border-left: none;
+        border-right: none;
+    }
+}
+
 .notifications-header {
     display: flex;
     justify-content: space-between;

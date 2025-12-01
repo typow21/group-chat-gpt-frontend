@@ -146,3 +146,13 @@ body.light-mode .login-form input::placeholder {
     color: var(--text-primary);
     border-color: var(--text-secondary);
 }
+
+@media (max-width: 480px) {
+    .login-form-container {
+        padding: 1.5rem;
+    }
+
+    .login-header h1 {
+        font-size: 1.75rem;
+    }
+}

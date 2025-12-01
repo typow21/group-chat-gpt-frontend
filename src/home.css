@@ -34,7 +34,8 @@ body {
 }
 
 .room-header .create-room-button {
-  margin-bottom: 0; /* handled by header spacing */
+  margin-bottom: 0;
+  /* handled by header spacing */
 }
 
 /* Create Room Button */
@@ -197,13 +198,13 @@ body {
 
 .popup input[type="text"] {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-family: var(--font-sans);
   transition: all 0.2s ease;
 }
@@ -212,6 +213,14 @@ body {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  background: rgba(15, 23, 42, 0.7);
+}
+
+/* Make room name input specifically larger */
+.popup input#roomName {
+  font-size: 1.25rem;
+  font-weight: 500;
+  padding: 1.125rem 1.5rem;
 }
 
 .button-group {
@@ -231,6 +240,7 @@ body {
 }
 
 @media (max-width: 640px) {
+
   /* stack header and make create button full width on mobile */
   .room-header {
     flex-direction: column;

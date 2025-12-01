@@ -15,6 +15,56 @@
     z-index: 9999;
     height: 70px;
     box-shadow: var(--shadow-md);
+    transition: height 0.3s ease, padding 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        height: 60px;
+        padding: 0 0.75rem;
+    }
+
+    .navbar-brand {
+        font-size: 1rem;
+    }
+
+    /* Hide the text "GroupChatGPT" on mobile, keep only logo */
+    .navbar-brand span {
+        display: none;
+    }
+
+    .navbar-links {
+        gap: 0.25rem;
+    }
+
+    /* Hide user name and dropdown arrow on mobile */
+    .user-menu-btn span {
+        display: none !important;
+    }
+
+    .user-menu-btn {
+        padding: 0.25rem !important;
+    }
+
+    .theme-toggle {
+        font-size: 1.1rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+
+    /* Fix dropdowns on mobile */
+    .user-dropdown {
+        position: fixed !important;
+        top: 60px !important;
+        /* Below navbar */
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+        border-left: none !important;
+        border-right: none !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
 }
 
 .navbar-brand {
@@ -125,4 +175,123 @@ body.light-mode .nav-link {
 
 body.light-mode .nav-link:hover {
     color: var(--primary-color);
+}
+
+/* User Menu Dropdown */
+.user-menu {
+    position: relative;
+}
+
+.user-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent !important;
+    border: none !important;
+    padding: 0.5rem !important;
+    color: var(--text-primary) !important;
+}
+
+.user-menu-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: auto;
+    margin-top: 0.5rem;
+    background-color: var(--background-light);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    padding: 0.5rem;
+    z-index: 10000;
+    animation: slideDown 0.2s ease-out;
+}
+
+.user-dropdown-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 0.5rem;
+}
+
+.user-dropdown-header p {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.user-dropdown-header span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-item.danger {
+    color: #ef4444;
+}
+
+.dropdown-item.danger:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+body.light-mode .user-dropdown {
+    background-color: white;
+    border-color: rgba(226, 232, 240, 1);
+}
+
+body.light-mode .user-menu-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-mode .dropdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
