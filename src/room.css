@@ -88,6 +88,12 @@
   cursor: pointer;
   transition: all 0.18s ease;
   font-size: 0.875rem;
+
+/* Sticky Ask AI active state */
+#ai-btn.sticky-active {
+  color: var(--accent-color);
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+}
   gap: 0.5rem;
   padding: 0 0.5rem;
 }

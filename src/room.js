@@ -41,6 +41,8 @@ const Room = function () {
   const [sendMessageText, setSendMessageText] = useState("");
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [showUsersPopup, setShowUsersPopup] = useState(false);
+  // Sticky Ask AI state placed with other state hooks to satisfy rules-of-hooks
+  const [aiSticky, setAiSticky] = useState(false);
   let userId = localStorage.getItem("userId");
   const messagesEndRef = useRef(null);
   const { isDarkMode, toggleTheme } = useTheme();
@@ -79,6 +81,10 @@ const Room = function () {
         .then((data) => {
           setRoom(data);
           setMessages([...data.messages]);
+          // Enable sticky Ask AI for two-party rooms with a bot
+          if (isTwoPartyWithBotRoom(data)) {
+            setAiSticky(true);
+          }
         })
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
@@ -113,10 +119,55 @@ const Room = function () {
   if (loading_ws) return <div className="loading-state">Connecting to chat...</div>;
   if (error_ws) return <div className="error-state">Error: {error_ws.message}</div>;
 
+  // Bot detection helpers
+
+  const isTwoPartyWithBotRoom = (roomObj) => {
+    if (!roomObj || !roomObj.users) return false;
+    const userList = Object.values(roomObj.users);
+    if (userList.length !== 2) return false;
+    const botNames = Object.values(roomObj.users)
+      .map(u => (u.username || '').toLowerCase())
+      .filter(name => name.includes('chatgpt') || name.includes('bot'));
+    return botNames.length > 0;
+  };
+
+  const isTwoPartyWithBot = () => isTwoPartyWithBotRoom(room);
+
+  // messageLooksFromBot helper not required currently; can reintroduce if used later
+
+  // Removed useEffect to satisfy rules-of-hooks; set sticky during room fetch
+
+  const ensurePrefix = (text) => {
+    // Ensure a single @chatgpt mention at start if sticky is enabled
+    if (!aiSticky) return text;
+    const hasMention = /\B@chatgpt\b/i.test(text);
+    if (hasMention) {
+      // Normalize to single leading mention
+      const stripped = text.replace(/\s*\B@chatgpt\b\s*/ig, ' ').trim();
+      return `@chatgpt ${stripped}`.trim();
+    }
+    return `@chatgpt ${text}`.trim();
+  };
+
+  function addAI() {
+    // Toggle sticky mode when clicking ✨
+    setAiSticky(prev => !prev);
+    // Apply immediately to current input
+    setSendMessageText(prev => ensurePrefix(prev));
+    document.getElementById("sendMsgInput")?.focus();
+  }
+
   const sendMessage = () => {
     if (sendMessageText === "") {
       return;
     }
+    // Build content with sticky prefix or two-party bot rule
+    let contentToSend = sendMessageText;
+    const needsAuto = (isTwoPartyWithBot() || aiSticky);
+    if (needsAuto) {
+      contentToSend = ensurePrefix(contentToSend);
+    }
+
     fetch(process.env.REACT_APP_ENDPOINT + "/send-message", {
       method: "POST",
       headers: {
@@ -125,7 +176,7 @@ const Room = function () {
       body: JSON.stringify({
         senderId: userId,
         roomId: room_id,
-        content: sendMessageText,
+        content: contentToSend,
       }),
     })
       .then((response) => {
@@ -195,15 +246,10 @@ const Room = function () {
     setShareRoomUsername(username);
   };
 
+  // Override message input onChange to honor sticky
   const handleInputChange = (value) => {
     setShareRoomUsername(value);
   };
-
-  function addAI() {
-    setSendMessageText(prev => prev + "@chatgpt ");
-    document.getElementById("sendMsgInput")?.focus();
-  }
-
 
   return (
     <div className="room-page">
@@ -314,13 +360,13 @@ const Room = function () {
 
           <div className="input-container">
             <div className="input-wrapper">
-              <i onClick={addAI} id="ai-btn" title="Ask AI">✨</i>
+              <i onClick={addAI} id="ai-btn" title="Ask AI" className={aiSticky ? 'sticky-active' : ''}>✨</i>
               <input
                 type="text"
                 id="sendMsgInput"
                 placeholder="Type a message..."
                 value={sendMessageText}
-                onChange={(e) => setSendMessageText(e.target.value)}
+                onChange={(e) => setSendMessageText(aiSticky ? ensurePrefix(e.target.value) : e.target.value)}
                 onKeyPress={handleKeyPress}
                 autoComplete="off"
               />
