@@ -1,52 +1,148 @@
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
 .login-form-container {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem;
+    border-radius: var(--radius-xl);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.login-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.login-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
 }
 
 .login-form label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 0.25rem;
 }
 
 .login-form input[type="text"],
 .login-form input[type="password"] {
     width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 0.875rem 1rem;
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: var(--font-sans);
+    transition: all 0.2s ease;
 }
 
-.login-form button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
+.login-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: rgba(15, 23, 42, 0.5);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.login-form input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Light mode login inputs */
+body.light-mode .login-form input[type="text"],
+body.light-mode .login-form input[type="password"] {
+    background: rgba(248, 250, 252, 0.8);
+    border: 1px solid rgba(226, 232, 240, 1);
+    color: rgb(30, 41, 59);
+}
+
+body.light-mode .login-form input:focus {
+    background: rgba(248, 250, 252, 1);
+    border-color: var(--primary-color);
+}
+
+body.light-mode .login-form input::placeholder {
+    color: rgba(100, 116, 139, 0.7);
+}
+
+#login-btn {
+    width: 100%;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
 }
 
-.login-form button:hover {
-    background-color: #0056b3;
+#login-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.4);
+}
+
+#login-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.divider span {
+    padding: 0 1rem;
 }
 
 #signup-btn {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
+    width: 100%;
+    padding: 0.875rem;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 0.95rem;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 #signup-btn:hover {
-    background-color: #0056b3;
-}
-
-/* Adjust button layout */
-.login-form button {
-    margin-right: 10px; /* Add margin to the right of the "Login" button */
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
 }

@@ -1,171 +1,515 @@
 /* Style for the whole page */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
-  margin: 0;
-  padding: 0;
+  background-color: var(--background-dark);
+  color: var(--text-primary);
 }
 
-/* Style for the Room Creation section */
-#roomCreation {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-#roomCreation h1 {
-  font-size: 24px;
-  margin-top: 0;
-}
-
-#roomCreation label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-#roomCreation input[type="text"] {
-  width: calc(100% - 20px);
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-#roomCreation button[type="submit"] {
-  background-color: #0070c9;
-  color: #fff;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-#roomCreation button[type="submit"]:hover {
-  background-color: #005baa;
-}
-
-/* Style for the Room List section */
+/* Main Container */
 #roomList {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  padding-top: 8vh;
-  margin-bottom: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  /* reduced top padding for better initial spacing */
+  padding: 80px 20px 40px;
+  background-color: transparent;
+  box-shadow: none;
 }
 
 #roomList h1 {
-  font-size: 24px;
-  margin-top: 0;
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-#rooms {
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: left;
-}
-
-#room {
-  position: relative;
-  width: 100%; /* Adjusted for mobile devices */
-  margin-bottom: 20px; /* Increased margin for better separation */
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 20px;
-  box-sizing: border-box;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.room-delete-button {
-  background-color: #fff;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: #ff4d4d;
-  border: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-size: 14px;
+/* header wrapper to align title and create button */
+.room-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.room-delete-button:hover {
-  color: #b60000;
-  font-weight: bold;
+.room-header .create-room-button {
+  margin-bottom: 0; /* handled by header spacing */
+}
+
+/* Create Room Button */
+.create-room-button {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+}
+
+.create-room-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.4);
+}
+
+.create-room-button:active {
+  transform: translateY(0);
+}
+
+/* Room Grid */
+#rooms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+/* Room Card */
+#room {
+  background: var(--surface-color);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  position: relative;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: var(--shadow-lg);
 }
 
 #room:hover {
-  box-shadow: rgba(0, 0, 0, 0.3) 0 1px 3px;
-  cursor: pointer;
+  transform: translateY(-5px);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-glow);
 }
 
 #room h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 18px;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 #room p {
   margin: 0;
-  font-size: 14px;
-  color: #666;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
-/* Style for the create room button */
-.create-room-button {
-  background-color: #0070c9;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 12px 24px;
-  margin-bottom: 20px; /* Added margin for better separation */
-  width: calc(100% - 40px); /* Adjusted width for mobile devices */
+.room-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+#roomCreator {
+  margin-bottom: 0.5rem !important;
+  font-weight: 500;
+  color: var(--accent-color) !important;
+}
+
+/* Delete Button */
+.room-delete-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s;
+  opacity: 0;
+  z-index: 10;
 }
 
-.create-room-button:hover {
-  background-color: #005baa;
+#room:hover .room-delete-button {
+  opacity: 1;
 }
 
-/* Style for the button group */
+.room-delete-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Popup Styles */
+.popup-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.popup {
+  background: var(--background-light);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-glow);
+  padding: 2rem;
+  width: 90%;
+  max-width: 450px;
+  animation: slideUp 0.3s ease-out;
+  overflow: visible;
+}
+
+.popup h2 {
+  margin-top: 0;
+  margin-bottom: 2rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.popup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.popup input[type="text"] {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.5rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  transition: all 0.2s ease;
+}
+
+.popup input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* Light mode room creation inputs */
+body.light-mode .popup input[type="text"] {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 1);
+  color: rgb(30, 41, 59);
+}
+
+body.light-mode .popup input[type="text"]:focus {
+  background: rgba(248, 250, 252, 1);
+  border-color: var(--primary-color);
+}
+
+body.light-mode .popup input[type="text"]::placeholder {
+  color: rgba(100, 116, 139, 0.7);
+}
+
 .button-group {
   display: flex;
-  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  /* stack header and make create button full width on mobile */
+  .room-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .room-header .create-room-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #rooms {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
 }
 
 .popup button {
-  padding: 12px 24px;
+  flex: 1;
+  padding: 0.875rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
-  font-size: 16px;
+  transition: all 0.2s ease;
 }
 
-.popup button[type="submit"] {
-  background-color: #0070c9;
+.submit-button {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
   color: #fff;
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
 }
 
-.popup button[type="submit"]:hover {
-  background-color: #005baa;
+.submit-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.4);
 }
 
-.popup .close-button {
-  background-color: #ccc;
-  color: #333;
+.close-button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border) !important;
 }
 
-.popup .close-button:hover {
-  background-color: #bbb;
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* User selection for room creation */
+.user-search-container {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.selected-users-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  min-height: 2.5rem;
+  align-items: center;
+}
+
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.15rem 0.4rem 0.15rem 0.6rem;
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  color: var(--text-primary);
+}
+
+.pill-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1;
+  transition: color 0.2s ease;
+  margin-left: 0.15rem;
+}
+
+.pill-remove-btn:hover {
+  color: var(--primary-color);
+}
+
+#userSearch {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.5rem 0;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  outline: none;
+}
+
+#userSearch::placeholder {
+  color: var(--text-muted);
+}
+
+/* Light mode user search */
+body.light-mode .selected-users-container {
+  background: rgba(248, 250, 252, 0.6);
+  border: 1px solid rgba(226, 232, 240, 1);
+}
+
+body.light-mode .user-pill {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: rgb(30, 41, 59);
+}
+
+body.light-mode #userSearch {
+  color: rgb(30, 41, 59);
+}
+
+body.light-mode #userSearch::placeholder {
+  color: rgba(100, 116, 139, 0.7);
+}
+
+/* Dropdown styling */
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: rgb(30, 41, 59);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 3000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-header {
+  padding: 0.75rem 1rem;
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--glass-border);
+  font-weight: 500;
+}
+
+.dropdown-results {
+  max-height: calc(300px - 40px);
+  overflow-y: auto;
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dropdown-option:hover,
+.dropdown-option.selected {
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.option-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.option-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.option-username {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.option-name {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.no-results {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Light mode dropdown */
+body.light-mode .user-dropdown {
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(226, 232, 240, 1);
+}
+
+body.light-mode .dropdown-header {
+  color: rgba(100, 116, 139, 0.8);
+  border-bottom: 1px solid rgba(226, 232, 240, 1);
+}
+
+body.light-mode .dropdown-option:hover,
+body.light-mode .dropdown-option.selected {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+body.light-mode .option-username {
+  color: rgb(30, 41, 59);
+}
+
+body.light-mode .option-name {
+  color: rgba(100, 116, 139, 0.7);
+}
+
+body.light-mode .no-results {
+  color: rgba(100, 116, 139, 0.8);
 }

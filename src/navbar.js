@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './navbar.css'; // Import the CSS file
+import './navbar.css';
+import { useTheme } from './ThemeContext';
+import Notifications from './notifications';
 
 function logout() {
     localStorage.clear();
@@ -16,6 +18,8 @@ function checkAuth() {
 
 function Navbar() {
     checkAuth();
+    const { isDarkMode, toggleTheme } = useTheme();
+    const userId = localStorage.getItem('userId');
 
     return (
         <nav className="navbar">
@@ -23,7 +27,12 @@ function Navbar() {
                 <Link to="/">GroupGPT</Link>
             </div>
             <div className="navbar-links">
-                <p><b>{localStorage.getItem('userId')}</b></p>
+                <button onClick={toggleTheme} className="theme-toggle" title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+                    {isDarkMode ? '☀️' : '🌙'}
+                </button>
+                <Notifications userId={userId} />
+                <Link to="/friends" className="nav-link">Friends</Link>
+                <p><b>{userId}</b></p>
                 <button onClick={logout}>Logout</button>
             </div>
         </nav>

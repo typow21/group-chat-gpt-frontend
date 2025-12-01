@@ -1,127 +1,128 @@
-body {
-    background-color: #F5F5F5;
-}
 .navbar {
-    background-color: #000000;
-    color: #fff;
+    background-color: rgba(15, 23, 42, 1.0);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-primary);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 0 2rem;
     position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    z-index: 1000;
-    height: 5vh;
-    box-shadow: 5px 0px 5px rgb(44, 44, 44);
+    z-index: 9999;
+    height: 70px;
+    box-shadow: var(--shadow-md);
 }
 
 .navbar-brand {
-    font-size: 24px;
-    font-weight: bold;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
 }
 
 .navbar-brand a {
-    color: #fff;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.navbar-brand a:hover {
+    opacity: 0.9;
 }
 
 .navbar-links {
     display: flex;
     align-items: center;
-    margin-right: 20px;
-    /* Adjusted margin to create space for the logout button */
+    gap: 1rem;
+    flex-wrap: nowrap;
+    /* prevent wrapping caused by label toggles */
 }
 
 .navbar-links p {
     margin: 0;
-    margin-right: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.navbar-links b {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 .navbar-links button {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 16px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.2s;
 }
 
 .navbar-links button:hover {
-    background-color: #555;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-secondary);
+    transform: translateY(-1px);
 }
 
-
-
-/* Style for the button group */
-.button-group {
-    display: flex;
-    justify-content: space-between;
+.theme-toggle {
+    font-size: 1.2rem !important;
+    padding: 0.4rem 0.8rem !important;
+    border: none !important;
+    background: transparent !important;
 }
 
-.popup button {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
+.theme-toggle:hover {
+    transform: scale(1.1) !important;
+    background: transparent !important;
 }
 
-.popup .submit-button {
-    background-color: #0070c9;
-    color: #fff;
+/* Light mode styles */
+body.light-mode .navbar {
+    background-color: rgba(248, 250, 252, 0.85);
+    border-bottom-color: rgba(226, 232, 240, 0.8);
 }
 
-.popup .submit-button:hover {
-    background-color: #005baa;
+body.light-mode .navbar-links p {
+    color: rgba(71, 85, 105, 0.8);
 }
 
-.popup .close-button {
-    background-color: #ccc;
-    color: #333;
+body.light-mode .navbar-links button {
+    background-color: rgba(71, 85, 105, 0.05);
+    border-color: rgba(226, 232, 240, 1);
+    color: rgb(30, 41, 59);
 }
 
-.popup .close-button:hover {
-    background-color: #bbb;
+body.light-mode .navbar-links button:hover {
+    background-color: rgba(71, 85, 105, 0.1);
+    border-color: rgba(71, 85, 105, 0.3);
 }
 
-
-/* Style for the popup background */
-.popup-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s;
 }
 
-/* Style for the popup */
-.popup {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    width: 300px;
+.nav-link:hover {
+    color: var(--primary-color);
 }
 
-.popup h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 24px;
+body.light-mode .nav-link {
+    color: rgba(71, 85, 105, 0.8);
 }
 
-.popup label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.popup input[type="text"] {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+body.light-mode .nav-link:hover {
+    color: var(--primary-color);
 }

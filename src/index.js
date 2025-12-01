@@ -15,7 +15,7 @@ const httpLink = new HttpLink({
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: process.env.REACT_APP_BASE_WS_ENDPOINT+"/graphql",
+    url: process.env.REACT_APP_BASE_WS_ENDPOINT + "/graphql",
   })
 );
 
@@ -47,7 +47,6 @@ root.render(
     <ApolloProvider client={client}>
       <App />
     </ApolloProvider>
-    ,
   </React.StrictMode>
 );
 
