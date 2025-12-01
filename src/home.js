@@ -154,10 +154,11 @@ function Home() {
   }, []);
 
   useEffect(() => {
+    // Copy ref to a local variable so the cleanup reads a stable value
+    const timerRefValue = debounceTimer.current;
     return () => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
+      if (timerRefValue) {
+        clearTimeout(timerRefValue);
       }
     };
   }, []);
