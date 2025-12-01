@@ -247,7 +247,14 @@ const Room = function () {
               placeholder="Search friends..."
             />
             <div style={{ marginTop: '0.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              Only friends will appear here. <Link to="/friends">Manage friends</Link>
+              Only friends will appear here.
+              <button
+                onClick={() => window.location.href = '/friends'}
+                className="close-button"
+                style={{ marginLeft: '0.5rem' }}
+              >
+                Manage friends
+              </button>
             </div>
             <div className="button-group">
               <button onClick={toggleSharePopup} className="close-button">
