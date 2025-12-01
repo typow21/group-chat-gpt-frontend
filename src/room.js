@@ -237,14 +237,18 @@ const Room = function () {
               Search for a friend to invite them to this conversation.
               <br />
               <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.5rem' }}>
-                Note: You can only invite users who are already your friends.
+                <strong>Note:</strong> You can only invite users who are already your friends.
               </small>
             </p>
             <UserInput
               value={shareRoomUsername}
               onChange={handleInputChange}
               onSelect={handleSelection}
+              placeholder="Search friends..."
             />
+            <div style={{ marginTop: '0.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              Only friends will appear here. <Link to="/friends">Manage friends</Link>
+            </div>
             <div className="button-group">
               <button onClick={toggleSharePopup} className="close-button">
                 Cancel

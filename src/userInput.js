@@ -105,7 +105,7 @@ const UserInput = function (props) {
       <input
         type="text"
         id="shareRoomUsername"
-        placeholder="type username here"
+        placeholder={props.placeholder || "type username here"}
         value={props.value}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}

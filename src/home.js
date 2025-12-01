@@ -155,6 +155,7 @@ function Home() {
 
   useEffect(() => {
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
