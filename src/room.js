@@ -7,6 +7,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { checkAuth } from "./navbar";
 import UserInput from "./userInput";
 import { useParams } from "react-router-dom";
+import { authFetch } from "./api";
 
 const MESSAGE_SUB = function (room_id, user_id) {
   return gql`
@@ -52,7 +53,7 @@ const Room = function () {
   }, [messages]);
 
   const shareRoom = () => {
-    fetch(process.env.REACT_APP_ENDPOINT + "/share-room", {
+    authFetch(process.env.REACT_APP_ENDPOINT + "/share-room", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -69,7 +70,7 @@ const Room = function () {
 
   useEffect(() => {
     const fetchRoom = () => {
-      fetch(process.env.REACT_APP_ENDPOINT + "/room/" + room_id)
+      authFetch(process.env.REACT_APP_ENDPOINT + "/room/" + room_id)
         .then((response) => {
           if (!response.ok) {
             throw new Error("Network response was not ok");
@@ -161,7 +162,7 @@ const Room = function () {
       contentToSend = ensurePrefix(contentToSend);
     }
 
-    fetch(process.env.REACT_APP_ENDPOINT + "/send-message", {
+    authFetch(process.env.REACT_APP_ENDPOINT + "/send-message", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

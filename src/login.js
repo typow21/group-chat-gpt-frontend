@@ -37,8 +37,18 @@ function LoginForm() {
             if ("error" in data) {
                 alert(data.error);
             } else {
-                localStorage.setItem('userId', data.id);
-                localStorage.setItem('user', JSON.stringify(data));
+                // Expect backend: { user: {...}, token: "..." }
+                const { user, token } = data || {};
+                if (!token) {
+                    alert('Login succeeded but no token returned.');
+                }
+                if (user?.id) {
+                    localStorage.setItem('userId', user.id);
+                }
+                localStorage.setItem('user', JSON.stringify({ ...user, token }));
+                if (token) {
+                    localStorage.setItem('token', token);
+                }
                 window.location.href = './';
             }
         } catch (error) {

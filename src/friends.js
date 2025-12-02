@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './friends.css';
 import { checkAuth } from "./navbar";
+import { authFetch } from "./api";
 
 function Friends() {
   checkAuth();
@@ -12,7 +13,7 @@ function Friends() {
   const userId = localStorage.getItem('userId');
 
   const fetchFriends = useCallback(() => {
-    fetch(`${process.env.REACT_APP_ENDPOINT}/friends/${userId}`)
+    authFetch(`${process.env.REACT_APP_ENDPOINT}/friends/${userId}`)
       .then(res => {
         if (!res.ok) {
           throw new Error('Failed to fetch friends');
@@ -27,7 +28,7 @@ function Friends() {
   }, [userId]);
 
   const fetchRequests = useCallback(() => {
-    fetch(`${process.env.REACT_APP_ENDPOINT}/friend-requests/${userId}`)
+    authFetch(`${process.env.REACT_APP_ENDPOINT}/friend-requests/${userId}`)
       .then(res => {
         if (!res.ok) {
           throw new Error('Failed to fetch requests');
@@ -53,7 +54,7 @@ function Friends() {
       return;
     }
 
-    fetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${value}`)
+    authFetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${value}`)
       .then(res => res.json())
       .then(data => {
         // Filter out self and existing friends
@@ -67,7 +68,7 @@ function Friends() {
   };
 
   const sendRequest = (toUser) => {
-    fetch(`${process.env.REACT_APP_ENDPOINT}/friend-request`, {
+    authFetch(`${process.env.REACT_APP_ENDPOINT}/friend-request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ from_user: userId, to_user: toUser })
@@ -81,7 +82,7 @@ function Friends() {
   };
 
   const acceptRequest = (fromUser) => {
-    fetch(`${process.env.REACT_APP_ENDPOINT}/accept-friend-request`, {
+    authFetch(`${process.env.REACT_APP_ENDPOINT}/accept-friend-request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ from_user: fromUser, to_user: userId })
