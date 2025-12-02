@@ -92,27 +92,22 @@ const Room = function () {
   }, [room_id]);
 
   const { loading_ws, error_ws, data_ws } = useSubscription(MESSAGE_SUB(room_id, userId), {
-    onSubscriptionData: (data_ws) => {
-      if (data_ws?.subscriptionData?.data?.messages) {
-        setMessages([...messages, data_ws?.subscriptionData?.data?.messages]);
+    onSubscriptionData: (subscriptionResult) => {
+      const newMessage = subscriptionResult?.subscriptionData?.data?.messages;
+      if (newMessage) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     },
   });
 
-  const { rn_data_ws } = useSubscription(ROOM_NOTIFICATION_SUB(room_id), {
-    onSubscriptionData: (data_ws) => {
-      let message = rn_data_ws?.subscriptionData?.data?.message;
+  useSubscription(ROOM_NOTIFICATION_SUB(room_id), {
+    onSubscriptionData: (subscriptionResult) => {
+      const message = subscriptionResult?.subscriptionData?.data?.roomNotif?.message;
       if (message) {
-        setMessages([...messages, message]);
+        setMessages((prevMessages) => [...prevMessages, message]);
       }
     },
   });
-
-  useEffect(() => {
-    if (data_ws?.subscriptionData?.data?.messages) {
-      setMessages([data_ws.subscriptionData.data.messages]);
-    }
-  }, [data_ws]);
 
   if (loading_ws) return <div className="loading-state">Connecting to chat...</div>;
   if (error_ws) return <div className="error-state">Error: {error_ws.message}</div>;
