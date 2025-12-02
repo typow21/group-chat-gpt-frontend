@@ -1,183 +1,53 @@
 .navbar {
-    background-color: rgba(15, 23, 42, 1.0);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--glass-border);
-    color: var(--text-primary);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 2rem;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 9999;
-    height: 70px;
-    box-shadow: var(--shadow-md);
-    transition: height 0.3s ease, padding 0.3s ease;
-}
-
-@media (max-width: 768px) {
-    .navbar {
-        height: 60px;
-        padding: 0 0.75rem;
-    }
-
-    .navbar-brand {
-        font-size: 1rem;
-    }
-
-    /* Hide the text "GroupChatGPT" on mobile, keep only logo */
-    .navbar-brand span {
-        display: none;
-    }
-
-    .navbar-links {
-        gap: 0.25rem;
-    }
-
-    /* Hide user name and dropdown arrow on mobile */
-    .user-menu-btn span {
-        display: none !important;
-    }
-
-    .user-menu-btn {
-        padding: 0.25rem !important;
-    }
-
-    .theme-toggle {
-        font-size: 1.1rem !important;
-        padding: 0.25rem 0.5rem !important;
-    }
-
-    /* Fix dropdowns on mobile */
-    .user-dropdown {
-        position: fixed !important;
-        top: 60px !important;
-        /* Below navbar */
-        left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        margin: 0 !important;
-        border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
-        border-left: none !important;
-        border-right: none !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-    }
+    padding: 0.75rem 1.5rem;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--glass-border);
+    height: 60px;
+    box-sizing: border-box;
+    z-index: 50;
 }
 
 .navbar-brand {
-    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    letter-spacing: -0.025em;
 }
 
 .navbar-brand a {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--text-primary);
     text-decoration: none;
-    transition: opacity 0.2s;
+    transition: color 0.2s;
 }
 
 .navbar-brand a:hover {
-    opacity: 0.9;
+    color: var(--primary-color);
 }
 
 .navbar-links {
     display: flex;
     align-items: center;
     gap: 1rem;
-    flex-wrap: nowrap;
-    /* prevent wrapping caused by label toggles */
-}
-
-.navbar-links p {
-    margin: 0;
-    font-weight: 500;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-}
-
-.navbar-links b {
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-.navbar-links button {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.5rem 1.25rem;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.navbar-links button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: var(--text-secondary);
-    transform: translateY(-1px);
 }
 
 .theme-toggle {
-    font-size: 1.2rem !important;
-    padding: 0.4rem 0.8rem !important;
-    border: none !important;
-    background: transparent !important;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s;
 }
 
 .theme-toggle:hover {
-    transform: scale(1.1) !important;
-    background: transparent !important;
+    background-color: var(--hover-bg);
 }
 
-/* Light mode styles */
-body.light-mode .navbar {
-    background-color: rgba(248, 250, 252, 0.85);
-    border-bottom-color: rgba(226, 232, 240, 0.8);
-}
-
-body.light-mode .navbar-links p {
-    color: rgba(71, 85, 105, 0.8);
-}
-
-body.light-mode .navbar-links button {
-    background-color: rgba(71, 85, 105, 0.05);
-    border-color: rgba(226, 232, 240, 1);
-    color: rgb(30, 41, 59);
-}
-
-body.light-mode .navbar-links button:hover {
-    background-color: rgba(71, 85, 105, 0.1);
-    border-color: rgba(71, 85, 105, 0.3);
-}
-
-.nav-link {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: color 0.2s;
-}
-
-.nav-link:hover {
-    color: var(--primary-color);
-}
-
-body.light-mode .nav-link {
-    color: rgba(71, 85, 105, 0.8);
-}
-
-body.light-mode .nav-link:hover {
-    color: var(--primary-color);
-}
-
-/* User Menu Dropdown */
 .user-menu {
     position: relative;
 }
@@ -186,26 +56,29 @@ body.light-mode .nav-link:hover {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: transparent !important;
-    border: none !important;
-    padding: 0.5rem !important;
-    color: var(--text-primary) !important;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
 }
 
 .user-menu-btn:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: var(--hover-bg);
 }
 
 .user-avatar {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    color: white;
     font-size: 0.9rem;
 }
 
@@ -213,63 +86,94 @@ body.light-mode .nav-link:hover {
     position: absolute;
     top: 100%;
     right: 0;
-    left: auto;
     margin-top: 0.5rem;
-    background-color: var(--background-light);
+    background-color: var(--bg-secondary);
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    min-width: 200px;
     box-shadow: var(--shadow-lg);
-    width: 280px;
-    padding: 0.75rem;
-    z-index: 10000;
+    z-index: 1000;
     animation: slideDown 0.2s ease-out;
 }
 
 .user-dropdown-header {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem;
     border-bottom: 1px solid var(--glass-border);
     margin-bottom: 0.5rem;
 }
 
 .user-dropdown-header p {
     margin: 0;
-    color: var(--text-primary);
     font-weight: 600;
+    color: var(--text-primary);
 }
 
 .user-dropdown-header span {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
 }
 
 .dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
+    display: block;
     padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
     border: none;
     background: none;
-    color: var(--text-primary);
+    width: 100%;
     text-align: left;
-    cursor: pointer;
-    border-radius: var(--radius-md);
-    text-decoration: none;
     font-size: 0.95rem;
-    transition: background-color 0.2s, transform 0.1s ease-in-out;
+    cursor: pointer;
 }
 
 .dropdown-item:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-    transform: translateY(-1px);
+    background-color: var(--hover-bg);
 }
 
 .dropdown-item.danger {
-    color: #ef4444;
+    color: var(--danger-color);
 }
 
 .dropdown-item.danger:hover {
     background-color: rgba(239, 68, 68, 0.1);
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    display: none;
+    /* Hidden on desktop */
+}
+
+.sidebar-toggle:hover {
+    background-color: var(--hover-bg);
+}
+
+@media (max-width: 768px) {
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+
+    .user-menu-btn span {
+        display: none;
+        /* Hide name on mobile */
+    }
+
+    .user-menu-btn .user-avatar {
+        margin-right: 0;
+    }
 }
 
 @keyframes slideDown {
@@ -282,17 +186,4 @@ body.light-mode .nav-link:hover {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-body.light-mode .user-dropdown {
-    background-color: white;
-    border-color: rgba(226, 232, 240, 1);
-}
-
-body.light-mode .user-menu-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05) !important;
-}
-
-body.light-mode .dropdown-item:hover {
-    background-color: rgba(0, 0, 0, 0.05);
 }

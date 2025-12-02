@@ -77,8 +77,19 @@ body.light-mode .chatgpt-mention {
     0 0 10px rgba(16, 163, 127, 0.2);
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  /* Prevent scroll on body */
+  overscroll-behavior: none;
+  /* Prevent pull-to-refresh on mobile */
+}
+
+body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -90,11 +101,16 @@ body {
   background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
-  min-height: 100vh;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 * {

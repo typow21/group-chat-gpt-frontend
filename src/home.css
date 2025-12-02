@@ -4,6 +4,39 @@ body {
   color: var(--text-primary);
 }
 
+/* Default View (Home) */
+.default-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.welcome-container {
+  padding: 2rem;
+  max-width: 600px;
+}
+
+.welcome-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.welcome-container h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome-container p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+/* ... existing styles ... */
 /* Main Container */
 #roomList {
   max-width: 1200px;

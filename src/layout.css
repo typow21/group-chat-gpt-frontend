@@ -1,0 +1,51 @@
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    touch-action: pan-y;
+    /* Allow vertical scrolling only within children */
+}
+
+.main-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    /* Prevent double scrollbars */
+    position: relative;
+}
+
+.content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    /* Ensure it takes full width */
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    /* Below sidebar (100) but above content */
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@media (min-width: 769px) {
+    .sidebar-overlay {
+        display: none;
+    }
+}

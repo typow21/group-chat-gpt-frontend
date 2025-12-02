@@ -5,19 +5,19 @@ import { useTheme } from './ThemeContext';
 import Notifications from './notifications';
 import Logo from './LogoComponent';
 
-function logout() {
+export function logout() {
     localStorage.clear();
     window.location.href = '/login';
 }
 
-function checkAuth() {
+export function checkAuth() {
     const user = localStorage.getItem("user");
     if (!user) {
         logout();
     }
 }
 
-function Navbar() {
+function Navbar({ onToggleSidebar }) {
     checkAuth();
     const { isDarkMode, toggleTheme } = useTheme();
     const userId = localStorage.getItem('userId');
@@ -82,6 +82,9 @@ function Navbar() {
     return (
         <nav className="navbar">
             <div className="navbar-brand">
+                <button className="sidebar-toggle" onClick={onToggleSidebar}>
+                    <i className="fas fa-bars"></i>
+                </button>
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Logo className="w-8 h-8" style={{ width: '32px', height: '32px', color: 'var(--primary-color)' }} />
                     <span>GroupChatGPT</span>

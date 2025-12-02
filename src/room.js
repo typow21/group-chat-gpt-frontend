@@ -4,9 +4,7 @@ import CodeBlock from "./codeBlock";
 import "./room.css";
 import "./navbar.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { Link } from "react-router-dom";
-import checkAuth from "./navbar";
-import { useTheme } from './ThemeContext';
+import { checkAuth } from "./navbar";
 import UserInput from "./userInput";
 import { useParams } from "react-router-dom";
 
@@ -42,10 +40,10 @@ const Room = function () {
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [showUsersPopup, setShowUsersPopup] = useState(false);
   // Sticky Ask AI state placed with other state hooks to satisfy rules-of-hooks
-  const [aiSticky, setAiSticky] = useState(false);
+  const [aiSticky, setAiSticky] = useState(true);
   let userId = localStorage.getItem("userId");
   const messagesEndRef = useRef(null);
-  const { isDarkMode, toggleTheme } = useTheme();
+
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -253,27 +251,24 @@ const Room = function () {
 
   return (
     <div className="room-page">
-      <nav className="navbar">
-        <div className="navbar-brand">
-          <Link id="home" to="/">
-            <i className="fas fa-chevron-left"></i> Back
-          </Link>
+      <div className="room-header-bar">
+        <div className="room-info">
+          <h3 id="roomName">{room != null ? room.name : "Loading..."}</h3>
+          {room && (
+            <span className="room-meta">
+              {Object.keys(room.users).length} members
+            </span>
+          )}
         </div>
-        <div className="navbar-links">
-          <button onClick={toggleTheme} className="theme-toggle" title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-            {isDarkMode ? '☀️' : '🌙'}
+        <div className="room-actions">
+          <button className="action-btn" onClick={toggleSharePopup} title="Invite User">
+            <i className="fas fa-user-plus"></i>
           </button>
-          <div id="roomDetails">
-            <h3 id="roomName">{room != null ? room.name : "Loading..."}</h3>
-            <button id="shareRoomBnt" onClick={toggleSharePopup} title="Invite User">
-              <i className="fas fa-user-plus"></i>
-            </button>
-            <button id="shareRoomBnt" onClick={toggleUsersPopup} title="View Members">
-              <i className="fas fa-users"></i>
-            </button>
-          </div>
+          <button className="action-btn" onClick={toggleUsersPopup} title="View Members">
+            <i className="fas fa-users"></i>
+          </button>
         </div>
-      </nav>
+      </div>
 
       {showSharePopup && (
         <div className="popup-background" onClick={toggleSharePopup}>
