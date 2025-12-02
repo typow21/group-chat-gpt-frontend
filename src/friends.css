@@ -1,9 +1,9 @@
 .friends-page {
-  min-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   background-color: var(--bg-color);
   color: var(--text-color);
-  padding-top: 80px;
-  /* Account for fixed navbar */
 }
 
 .friends-container {
@@ -323,11 +323,6 @@
 }
 
 @media (max-width: 768px) {
-  .friends-page {
-    padding-top: 60px;
-    /* Match new navbar height */
-  }
-
   .friends-container {
     padding: 1rem;
   }

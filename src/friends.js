@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import NavBar from './navbar';
 import './friends.css';
-import checkAuth from "./navbar";
+import { checkAuth } from "./navbar";
 
 function Friends() {
   checkAuth();
@@ -99,7 +98,6 @@ function Friends() {
 
   return (
     <div className="friends-page">
-      <NavBar />
       <div className="friends-container">
         <div className="friends-header">
           <h1>Friends</h1>
