@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './notifications.css';
+import { authFetch } from './api';
 
 function Notifications({ userId }) {
     const [notifications, setNotifications] = useState([]);
@@ -8,7 +9,7 @@ function Notifications({ userId }) {
 
     const fetchNotifications = useCallback(async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${userId}`);
+            const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${userId}`);
             if (!response.ok) {
                 console.error('Failed to fetch notifications:', response.status);
                 setNotifications([]);
@@ -24,7 +25,7 @@ function Notifications({ userId }) {
 
     const fetchUnreadCount = useCallback(async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${userId}/count`);
+            const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${userId}/count`);
             if (!response.ok) {
                 console.error('Failed to fetch unread count:', response.status);
                 setUnreadCount(0);
@@ -49,7 +50,7 @@ function Notifications({ userId }) {
                 if (showDropdown) {
                     fetchNotifications();
                 }
-            }, 1000);
+            }, 5000);
 
             // Listen for manual refresh events
             const handleRefresh = () => {
@@ -67,7 +68,7 @@ function Notifications({ userId }) {
 
     const markAsRead = async (notificationId) => {
         try {
-            await fetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${notificationId}/mark-read?user_id=${userId}`, {
+            await authFetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${notificationId}/mark-read?user_id=${userId}`, {
                 method: 'POST'
             });
             fetchNotifications();
@@ -79,7 +80,7 @@ function Notifications({ userId }) {
 
     const deleteNotification = async (notificationId) => {
         try {
-            await fetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${notificationId}?user_id=${userId}`, {
+            await authFetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${notificationId}?user_id=${userId}`, {
                 method: 'DELETE'
             });
             fetchNotifications();
