@@ -68,7 +68,7 @@ function Sidebar({ isOpen, onClose }) {
 
     const deleteRoom = (e, roomId) => {
         e.stopPropagation();
-        if (!window.confirm('Are you sure you want to delete this room?')) return;
+        // if (!window.confirm('Are you sure you want to delete this room?')) return;
 
         fetch(process.env.REACT_APP_ENDPOINT + '/delete-room/' + roomId, {
             method: 'DELETE',

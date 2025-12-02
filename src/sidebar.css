@@ -26,6 +26,11 @@
     .sidebar.open {
         transform: translateX(0);
     }
+
+    .room-delete-button-small {
+        opacity: 1;
+        color: var(--danger-color);
+    }
 }
 
 .sidebar-header {
