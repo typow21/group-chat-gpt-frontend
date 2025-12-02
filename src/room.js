@@ -91,7 +91,7 @@ const Room = function () {
     fetchRoom();
   }, [room_id]);
 
-  const { loading_ws, error_ws, data_ws } = useSubscription(MESSAGE_SUB(room_id, userId), {
+  const { loading_ws, error_ws } = useSubscription(MESSAGE_SUB(room_id, userId), {
     onSubscriptionData: (subscriptionResult) => {
       const newMessage = subscriptionResult?.subscriptionData?.data?.messages;
       if (newMessage) {

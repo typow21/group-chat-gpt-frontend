@@ -7,7 +7,7 @@ import { ThemeProvider } from './ThemeContext';
 // Mock Apollo useSubscription to avoid WebSocket during tests
 jest.mock('@apollo/client', () => ({
   gql: jest.fn(),
-  useSubscription: jest.fn(() => ({ loading_ws: false, error_ws: null, data_ws: null })),
+  useSubscription: jest.fn(() => ({ loading_ws: false, error_ws: null })),
 }));
 
 beforeEach(() => {
