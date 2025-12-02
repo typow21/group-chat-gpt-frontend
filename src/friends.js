@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './friends.css';
 import { checkAuth } from "./navbar";
 import { authFetch } from "./api";
@@ -11,6 +11,7 @@ function Friends() {
   const [searchResults, setSearchResults] = useState([]);
   const [activeTab, setActiveTab] = useState('friends'); // 'friends', 'requests', 'add'
   const userId = localStorage.getItem('userId');
+  const debounceRef = useRef(null);
 
   const fetchFriends = useCallback(() => {
     authFetch(`${process.env.REACT_APP_ENDPOINT}/friends/${userId}`)
@@ -49,22 +50,41 @@ function Friends() {
 
   const handleSearch = (value) => {
     setUserSearch(value);
-    if (value.trim() === '') {
-      setSearchResults([]);
-      return;
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
-
-    authFetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${value}`)
-      .then(res => res.json())
-      .then(data => {
-        // Filter out self and existing friends
-        const filtered = data.filter(u =>
-          u.id !== userId &&
-          !friends.find(f => f.id === u.id)
-        );
-        setSearchResults(filtered);
-      })
-      .catch(err => console.error(err));
+    debounceRef.current = setTimeout(() => {
+      const q = value.trim();
+      if (q === '') {
+        setSearchResults([]);
+        return;
+      }
+      console.debug('[Friends] Searching profiles for:', q);
+      authFetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${encodeURIComponent(q)}`)
+        .then(async (res) => {
+          if (res.status === 401) {
+            console.warn('[Friends] Unauthorized during search');
+            return [];
+          }
+          if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(text || `Search failed: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          const arr = Array.isArray(data) ? data : [];
+          const filtered = arr.filter(u =>
+            u.id !== userId &&
+            !friends.find(f => f.id === u.id)
+          );
+          setSearchResults(filtered);
+        })
+        .catch(err => {
+          console.error('[Friends] Search error:', err);
+          setSearchResults([]);
+        });
+    }, 200);
   };
 
   const sendRequest = (toUser) => {

@@ -39,8 +39,18 @@ function SignupForm() {
             }
 
             const data = await response.json();
-            localStorage.setItem('userId', data.id);
-            localStorage.setItem('user', JSON.stringify(data));
+            // Expect backend: { user: {...}, token: "..." }
+            const { user, token } = data || {};
+            if (!token) {
+                console.warn('Signup succeeded but no token returned.');
+            }
+            if (user?.id) {
+                localStorage.setItem('userId', user.id);
+            }
+            localStorage.setItem('user', JSON.stringify({ ...user, token }));
+            if (token) {
+                localStorage.setItem('token', token);
+            }
             window.location.href = "./";
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
