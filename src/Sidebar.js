@@ -48,7 +48,8 @@ function Sidebar({ isOpen, onClose }) {
 
     const fetchRooms = () => {
         setIsLoading(true);
-        fetch(process.env.REACT_APP_ENDPOINT + '/rooms')
+        const userId = localStorage.getItem('userId');
+        fetch(process.env.REACT_APP_ENDPOINT + '/rooms/user/' + userId)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -56,9 +57,7 @@ function Sidebar({ isOpen, onClose }) {
                 return response.json();
             })
             .then(data => {
-                const userId = localStorage.getItem('userId');
-                const filteredRooms = data.filter(room => room.users.hasOwnProperty(userId));
-                setRooms(filteredRooms);
+                setRooms(data);
             })
             .catch(error => {
                 console.error('There was a problem with the fetch operation:', error);
@@ -83,9 +82,8 @@ function Sidebar({ isOpen, onClose }) {
                 return response.json();
             })
             .then(data => {
-                const userId = localStorage.getItem('userId');
-                const filteredRooms = data.filter(room => room.users.hasOwnProperty(userId));
-                setRooms(filteredRooms);
+                // Refetch rooms for current user after deletion
+                fetchRooms();
                 if (location.pathname === `/room/${roomId}`) {
                     navigate('/');
                 }
