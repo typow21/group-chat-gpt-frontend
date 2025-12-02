@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { authFetch } from './api';
 
 function RoomDetails() {
     const [roomId, setRoomId] = useState(null);
@@ -170,10 +171,11 @@ function RoomDetails() {
             return;
         }
 
-        fetch(`http://192.168.1.162:8000/room/${selectedRoomId}`)
-            .then((response) => {
+        authFetch(`${process.env.REACT_APP_ENDPOINT}/room/${selectedRoomId}`)
+            .then(async (response) => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    const text = await response.text().catch(() => '');
+                    throw new Error(text || `Request failed: ${response.status}`);
                 }
                 return response.json();
             })
@@ -257,16 +259,14 @@ function RoomDetails() {
             roomId: selectedRoomId,
         };
 
-        fetch('http://192.168.1.162:8000/share-room', {
+        authFetch(`${process.env.REACT_APP_ENDPOINT}/share-room`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(payload),
         })
-            .then((response) => {
+            .then(async (response) => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    const text = await response.text().catch(() => '');
+                    throw new Error(text || `Request failed: ${response.status}`);
                 }
                 return response.json();
             })

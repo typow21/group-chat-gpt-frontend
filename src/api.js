@@ -13,6 +13,15 @@ export async function authFetch(url, options = {}) {
   const isAuthEndpoint = /\/(login|signup)\b/.test(url);
   const token = getToken();
 
+  // Debug: log token info
+  console.log('[authFetch] Debug:', { 
+    url, 
+    hasToken: !!token, 
+    tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
+    userInStorage: localStorage.getItem('user'),
+    tokenInStorage: localStorage.getItem('token')
+  });
+
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {}),
@@ -20,8 +29,8 @@ export async function authFetch(url, options = {}) {
 
   if (!isAuthEndpoint) {
     if (!token) {
-      // Redirect to login if no token
-      window.location.href = '/login';
+      // No token: reject so caller can handle (no redirect)
+      console.warn('[authFetch] No token present', { url });
       return Promise.reject(new Error('No auth token'));
     }
     headers['Authorization'] = `Bearer ${token}`;
@@ -29,8 +38,9 @@ export async function authFetch(url, options = {}) {
 
   const resp = await fetch(url, { ...options, headers });
   if (resp.status === 401 && !isAuthEndpoint) {
-    // Token invalid/expired
-    window.location.href = '/login';
+    // Token invalid/expired: reject so caller can handle (no redirect)
+    const msg = await resp.text().catch(() => 'Unauthorized');
+    console.warn('[authFetch] 401 from API', { url, status: resp.status, body: msg });
     throw new Error('Unauthorized');
   }
   return resp;

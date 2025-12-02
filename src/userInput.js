@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./userInput.css";
+import { authFetch } from './api';
 
 const UserInput = function (props) {
   const [profiles, setProfiles] = useState([]);
@@ -26,10 +27,11 @@ const UserInput = function (props) {
     }
 
     const fetchProfiles = () => {
-      return fetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${props.value}`)
-        .then((response) => {
+      return authFetch(`${process.env.REACT_APP_ENDPOINT}/profiles/${props.value}`)
+        .then(async (response) => {
           if (!response.ok) {
-            throw new Error("Network response was not ok");
+            const text = await response.text().catch(() => '');
+            throw new Error(text || `Request failed: ${response.status}`);
           }
           return response.json();
         })

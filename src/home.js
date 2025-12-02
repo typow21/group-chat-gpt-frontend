@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from "react-router-dom";
 import './home.css';
 import { checkAuth } from "./navbar"
+import { authFetch } from './api';
 
 function Home() {
   checkAuth();
@@ -15,14 +16,17 @@ function Home() {
       users: []
     };
 
-    fetch(process.env.REACT_APP_ENDPOINT + '/create-room', {
+    authFetch(process.env.REACT_APP_ENDPOINT + '/create-room', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(newRoom),
     })
-      .then(response => response.json())
+      .then(async (response) => {
+        if (!response.ok) {
+          const text = await response.text().catch(() => '');
+          throw new Error(text || `Request failed: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
         navigate("/room/" + data.id);
       })

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import './home.css';
 import './sidebar.css';
+import { authFetch } from './api';
 
 function Sidebar({ isOpen, onClose }) {
     const navigate = useNavigate();
@@ -28,14 +29,17 @@ function Sidebar({ isOpen, onClose }) {
             users: []
         };
 
-        fetch(process.env.REACT_APP_ENDPOINT + '/create-room', {
+        authFetch(process.env.REACT_APP_ENDPOINT + '/create-room', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(newRoom),
         })
-            .then(response => response.json())
+            .then(async (response) => {
+                if (!response.ok) {
+                    const text = await response.text().catch(() => '');
+                    throw new Error(text || `Request failed: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 setRooms([...rooms, data]);
                 navigate("/room/" + data.id);
@@ -49,10 +53,11 @@ function Sidebar({ isOpen, onClose }) {
     const fetchRooms = () => {
         setIsLoading(true);
         const userId = localStorage.getItem('userId');
-        fetch(process.env.REACT_APP_ENDPOINT + '/rooms/user/' + userId)
-            .then(response => {
+        authFetch(process.env.REACT_APP_ENDPOINT + '/rooms/user/' + userId)
+            .then(async (response) => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    const text = await response.text().catch(() => '');
+                    throw new Error(text || `Request failed: ${response.status}`);
                 }
                 return response.json();
             })
@@ -69,15 +74,13 @@ function Sidebar({ isOpen, onClose }) {
         e.stopPropagation();
         // if (!window.confirm('Are you sure you want to delete this room?')) return;
 
-        fetch(process.env.REACT_APP_ENDPOINT + '/delete-room/' + roomId, {
+        authFetch(process.env.REACT_APP_ENDPOINT + '/delete-room/' + roomId, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            }
         })
-            .then(response => {
+            .then(async (response) => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    const text = await response.text().catch(() => '');
+                    throw new Error(text || `Request failed: ${response.status}`);
                 }
                 return response.json();
             })
