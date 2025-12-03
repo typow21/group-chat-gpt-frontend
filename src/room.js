@@ -177,11 +177,22 @@ const Room = function () {
           // Notify mentioned users (best-effort; ignore failures)
           const messageId = data?.message?.id || data?.id; // adapt if backend returns message
           mentionedUsers.forEach((username) => {
-            authFetch(process.env.REACT_APP_ENDPOINT + "/notify-mention", {
+            const url = (process.env.REACT_APP_ENDPOINT || '').replace(/\/$/, '') + "/notify-mention";
+            authFetch(url, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ roomId: room_id, mentionedUser: username, messageId }),
-            }).catch(() => {});
+            })
+              .then((resp) => {
+                if (!resp.ok) {
+                  return resp.text().then((t) => { throw new Error(t || 'Notify failed'); });
+                }
+                // Refresh notifications badge if component is mounted elsewhere
+                window.dispatchEvent(new CustomEvent('refreshNotifications'));
+              })
+              .catch((err) => {
+                console.warn('[notify-mention] Failed', { username, err: String(err) });
+              });
           });
         }
       })
