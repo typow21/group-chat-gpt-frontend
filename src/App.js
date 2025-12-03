@@ -5,6 +5,7 @@ import Home from "./home"
 import LoginForm from "./login";
 import SignupForm from "./signup";
 import Friends from "./friends";
+import Profile from "./Profile";
 import Layout from "./Layout";
 import { ThemeProvider } from "./ThemeContext";
 
@@ -17,6 +18,7 @@ function App() {
             <Route index element={<Home />} />
             <Route path="/room/:room_id" element={<Room />} />
             <Route path="friends" element={<Friends />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="login" element={<LoginForm />} />
           <Route path="signup" element={<SignupForm />}></Route>

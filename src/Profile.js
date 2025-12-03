@@ -1,0 +1,256 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './profile.css';
+import { checkAuth } from './navbar';
+import { authFetch } from './api';
+
+function Profile() {
+  checkAuth();
+  const navigate = useNavigate();
+  const userId = localStorage.getItem('userId');
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: ''
+  });
+  const [stats, setStats] = useState({
+    roomCount: 0,
+    friendCount: 0
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        // Get profile from backend
+        const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/profile/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProfile(data);
+          setFormData({
+            firstName: data.contact?.first_name || '',
+            lastName: data.contact?.last_name || '',
+            email: data.real_contact?.email || '',
+            phoneNumber: data.real_contact?.phone_number || ''
+          });
+          
+          // Get stats
+          const roomCount = data.user_context?.rooms?.length || 0;
+          const friendCount = data.user_context?.friends?.length || 0;
+          setStats({ roomCount, friendCount });
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        // Fallback to localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setFormData({
+            firstName: user.first_name || '',
+            lastName: user.last_name || '',
+            email: user.email || '',
+            phoneNumber: user.phone_number || ''
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchProfile();
+    } else {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/profile/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          phone_number: formData.phoneNumber
+        })
+      });
+      
+      if (response.ok) {
+        setEditing(false);
+        // Update localStorage
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        storedUser.first_name = formData.firstName;
+        storedUser.last_name = formData.lastName;
+        localStorage.setItem('user', JSON.stringify(storedUser));
+        localStorage.setItem('firstName', formData.firstName);
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/login');
+  };
+
+  if (loading) {
+    return (
+      <div className="profile-page">
+        <div className="profile-loading">Loading profile...</div>
+      </div>
+    );
+  }
+
+  const username = profile?.contact?.username || profile?.auth_info?.username || 'User';
+
+  return (
+    <div className="profile-page">
+      <div className="profile-content">
+        {/* Profile Header */}
+        <div className="profile-header">
+          <div className="profile-avatar">
+            {formData.firstName?.charAt(0)?.toUpperCase() || username?.charAt(0)?.toUpperCase() || '?'}
+          </div>
+          <div className="profile-title">
+            <h1>{formData.firstName} {formData.lastName}</h1>
+            <p className="username">@{username}</p>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="profile-stats">
+          <div className="stat-card" onClick={() => navigate('/rooms')}>
+            <span className="stat-value">{stats.roomCount}</span>
+            <span className="stat-label">Chats</span>
+          </div>
+          <div className="stat-card" onClick={() => navigate('/friends')}>
+            <span className="stat-value">{stats.friendCount}</span>
+            <span className="stat-label">Friends</span>
+          </div>
+        </div>
+
+        {/* Profile Info */}
+        <div className="profile-section">
+          <div className="section-header">
+            <h2>Profile Information</h2>
+            {!editing ? (
+              <button className="edit-btn" onClick={() => setEditing(true)}>
+                Edit
+              </button>
+            ) : (
+              <div className="edit-actions">
+                <button className="cancel-btn" onClick={() => setEditing(false)}>
+                  Cancel
+                </button>
+                <button className="save-btn" onClick={handleSave}>
+                  Save
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="profile-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label>First Name</label>
+                {editing ? (
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    placeholder="First name"
+                  />
+                ) : (
+                  <p>{formData.firstName || '-'}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Last Name</label>
+                {editing ? (
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    placeholder="Last name"
+                  />
+                ) : (
+                  <p>{formData.lastName || '-'}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Email</label>
+                {editing ? (
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Email address"
+                  />
+                ) : (
+                  <p>{formData.email || '-'}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Phone</label>
+                {editing ? (
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    placeholder="Phone number"
+                  />
+                ) : (
+                  <p>{formData.phoneNumber || '-'}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Account Section */}
+        <div className="profile-section">
+          <h2>Account</h2>
+          <div className="account-info">
+            <div className="account-row">
+              <span className="account-label">Username</span>
+              <span className="account-value">@{username}</span>
+            </div>
+            <div className="account-row">
+              <span className="account-label">User ID</span>
+              <span className="account-value account-id">{userId}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="profile-section danger-zone">
+          <h2>Session</h2>
+          <button className="logout-btn" onClick={handleLogout}>
+            <span>🚪</span> Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Profile;
