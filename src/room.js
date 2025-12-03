@@ -126,14 +126,9 @@ const Room = function () {
     return botNames.length > 0;
   };
 
-  const isTwoPartyWithBot = () => isTwoPartyWithBotRoom(room);
+  const isTwoPartyWithBot = () => isTwoPartyWithBotRoom(room); // unused
 
-  // messageLooksFromBot helper not required currently; can reintroduce if used later
-
-  // Removed useEffect to satisfy rules-of-hooks; set sticky during room fetch
-
-  // Remove automatic @chatgpt prefixing; keep text unchanged
-  const ensurePrefix = (text) => text;
+  // Removed: ensurePrefix (no longer used)
 
   function addAI() {
     // Insert a single leading @chatgpt mention on demand
