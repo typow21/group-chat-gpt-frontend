@@ -137,10 +137,10 @@ const Room = function () {
     const hasMention = /\B@chatgpt\b/i.test(text);
     if (hasMention) {
       // Normalize to single leading mention
-      const stripped = text.replace(/\s*\B@chatgpt\b\s*/ig, ' ').trim();
-      return `@chatgpt ${stripped}`.trim();
+      const stripped = text.replace(/\s*\B@chatgpt\b\s*/ig, ' ');
+      return `@chatgpt ${stripped}`;
     }
-    return `@chatgpt ${text}`.trim();
+    return `@chatgpt ${text}`;
   };
 
   function addAI() {
@@ -357,7 +357,7 @@ const Room = function () {
                 id="sendMsgInput"
                 placeholder="Type a message..."
                 value={sendMessageText}
-                onChange={(e) => setSendMessageText(aiSticky ? ensurePrefix(e.target.value) : e.target.value)}
+                onChange={(e) => setSendMessageText(e.target.value)}
                 onKeyPress={handleKeyPress}
                 autoComplete="off"
               />
