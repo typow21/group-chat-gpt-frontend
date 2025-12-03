@@ -50,6 +50,8 @@ const Room = function () {
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
   const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0);
   const [mentionDebounceId, setMentionDebounceId] = useState(null);
+  // Room name generation state
+  const [isGeneratingName, setIsGeneratingName] = useState(false);
   let userId = localStorage.getItem("userId");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -385,8 +387,6 @@ const Room = function () {
   };
 
   // Generate room name from conversation
-  const [isGeneratingName, setIsGeneratingName] = useState(false);
-  
   const generateRoomName = () => {
     if (isGeneratingName) return;
     setIsGeneratingName(true);
