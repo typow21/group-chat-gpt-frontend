@@ -257,6 +257,28 @@ const Room = function () {
       <div className="message-text">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkBreaks]}
+          components={{
+            table: ({ node, ...props }) => (
+              <table className="markdown-table" {...props} />
+            ),
+            thead: ({ node, ...props }) => <thead {...props} />,
+            tbody: ({ node, ...props }) => <tbody {...props} />,
+            tr: ({ node, ...props }) => <tr {...props} />,
+            th: ({ node, ...props }) => <th {...props} />,
+            td: ({ node, ...props }) => <td {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h1: ({ node, ...props }) => <h1 className="markdown-heading" {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h2: ({ node, ...props }) => <h2 className="markdown-heading" {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h3: ({ node, ...props }) => <h3 className="markdown-heading" {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h4: ({ node, ...props }) => <h4 className="markdown-heading" {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h5: ({ node, ...props }) => <h5 className="markdown-heading" {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h6: ({ node, ...props }) => <h6 className="markdown-heading" {...props} />,
+          }}
         >
           {content}
         </ReactMarkdown>
