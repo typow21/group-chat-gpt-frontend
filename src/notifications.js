@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './notifications.css';
 import { authFetch } from './api';
@@ -7,6 +7,8 @@ function Notifications({ userId }) {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [toast, setToast] = useState(null);
+    const prevUnreadCountRef = useRef(0);
     const navigate = useNavigate();
 
     const fetchNotifications = useCallback(async () => {
@@ -34,7 +36,24 @@ function Notifications({ userId }) {
                 return;
             }
             const data = await response.json();
-            setUnreadCount(data.count || 0);
+            const newCount = data.count || 0;
+            
+            // Show toast if we have new notifications (count increased)
+            if (newCount > prevUnreadCountRef.current && prevUnreadCountRef.current !== 0) {
+                // Fetch the latest notification to show in toast
+                const notifResponse = await authFetch(`${process.env.REACT_APP_ENDPOINT}/notifications/${userId}`);
+                if (notifResponse.ok) {
+                    const notifData = await notifResponse.json();
+                    const latestUnread = notifData.find(n => !n.read);
+                    if (latestUnread) {
+                        setToast(latestUnread);
+                        // Auto-dismiss after 4 seconds
+                        setTimeout(() => setToast(null), 4000);
+                    }
+                }
+            }
+            prevUnreadCountRef.current = newCount;
+            setUnreadCount(newCount);
         } catch (error) {
             console.error('Error fetching unread count:', error);
             setUnreadCount(0);
@@ -46,13 +65,13 @@ function Notifications({ userId }) {
             fetchNotifications();
             fetchUnreadCount();
 
-            // Poll for new notifications every 5 seconds
+            // Poll for new notifications every 3 seconds
             const interval = setInterval(() => {
                 fetchUnreadCount();
                 if (showDropdown) {
                     fetchNotifications();
                 }
-            }, 5000);
+            }, 3000);
 
             // Listen for manual refresh events
             const handleRefresh = () => {
@@ -182,6 +201,29 @@ function Notifications({ userId }) {
 
     return (
         <div className="notifications-container">
+            {/* Toast notification popup */}
+            {toast && (
+                <div className="notification-toast" onClick={() => {
+                    setShowDropdown(true);
+                    setToast(null);
+                }}>
+                    <div className="toast-icon">{getNotificationIcon(toast.type)}</div>
+                    <div className="toast-content">
+                        <strong>{toast.title}</strong>
+                        <p>{toast.message}</p>
+                    </div>
+                    <button 
+                        className="toast-close" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setToast(null);
+                        }}
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
+            
             <button className="notification-bell" onClick={toggleDropdown} aria-label="Notifications">
                 🔔
                 {unreadCount > 0 && (
