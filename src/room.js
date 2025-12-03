@@ -801,9 +801,9 @@ const Room = function () {
                     <p style={{ margin: 0, fontWeight: 'bold' }}>
                       ✨ {bot.name}
                     </p>
-                    {bot.customInstructions && (
+                    {(bot.custom_instructions || bot.customInstructions) && (
                       <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem' }}>
-                        {bot.customInstructions.substring(0, 60)}{bot.customInstructions.length > 60 ? '...' : ''}
+                        {(bot.custom_instructions || bot.customInstructions).substring(0, 60)}{(bot.custom_instructions || bot.customInstructions).length > 60 ? '...' : ''}
                       </small>
                     )}
                   </div>
@@ -897,7 +897,7 @@ const Room = function () {
             />
             <textarea
               placeholder="Custom personality/instructions"
-              defaultValue={editingBot.customInstructions || ''}
+              defaultValue={editingBot.custom_instructions || editingBot.customInstructions || ''}
               id="edit-bot-instructions"
               rows="5"
               style={{
