@@ -140,9 +140,11 @@ function Notifications({ userId }) {
         }
     };
 
-    const goToRoom = (notif) => {
+    const goToRoom = async (notif) => {
         const roomId = notif.metadata?.room_id;
         if (roomId) {
+            // Delete the notification when clicking the link
+            await deleteNotification(notif.id);
             setShowDropdown(false);
             navigate(`/room/${roomId}`);
         }
