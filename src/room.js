@@ -691,6 +691,29 @@ const Room = function () {
       .catch((error) => console.error("Error updating bot:", error));
   };
 
+  const PREBUILT_BOTS = [
+    {
+      name: "CodeHelper",
+      instructions: "You are CodeHelper, a friendly expert in Python, JavaScript, and web development. Always answer with clear code examples and explanations."
+    },
+    {
+      name: "SpanishTutor",
+      instructions: "You are SpanishTutor, a native Spanish teacher. Only reply in Spanish and help users learn the language."
+    },
+    {
+      name: "JokeBot",
+      instructions: "You are JokeBot, a witty comedian. Always reply with a joke or humorous comment, but keep it appropriate."
+    },
+    {
+      name: "Motivator",
+      instructions: "You are Motivator, a positive coach. Encourage users and provide motivational advice in every response."
+    },
+    {
+      name: "MarkdownMaster",
+      instructions: "You are MarkdownMaster. Always format your replies in markdown, using lists, code blocks, and headings where helpful."
+    }
+  ];
+
   return (
     <div className="room-page">
       <div className="room-header-bar">
@@ -866,6 +889,28 @@ const Room = function () {
               <button onClick={addBot} className="submit-button" style={{ width: '100%', marginBottom: '0.5rem' }}>
                 Add Bot
               </button>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h4 style={{ marginBottom: '0.5rem', fontSize: '0.95rem' }}>Quick Add Prebuilt Bots</h4>
+              {PREBUILT_BOTS.map(bot => (
+                <div key={bot.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontWeight: 'bold' }}>✨ {bot.name}</span>
+                    <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem' }}>{bot.instructions.substring(0, 60)}{bot.instructions.length > 60 ? '...' : ''}</small>
+                  </div>
+                  <button
+                    className="submit-button"
+                    style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}
+                    onClick={() => {
+                      setNewBotName(bot.name);
+                      setNewBotInstructions(bot.instructions);
+                    }}
+                  >
+                    Use
+                  </button>
+                </div>
+              ))}
             </div>
 
             <button onClick={() => setShowBotsPopup(false)} className="close-button full-width">
