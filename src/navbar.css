@@ -8,6 +8,26 @@
     height: 60px;
     box-sizing: border-box;
     z-index: 50;
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        height: auto;
+        padding: 0.5rem 1rem;
+    }
+    .navbar-links {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        align-items: flex-start;
+    }
+}
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.95rem;
+    }
+}
 }
 
 .navbar-brand {

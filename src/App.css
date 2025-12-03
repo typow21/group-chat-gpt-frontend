@@ -22,6 +22,20 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .App-header {
+    min-height: 100vh;
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}
+@media (max-width: 480px) {
+  .App-header {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
 }
 
 .App-link {

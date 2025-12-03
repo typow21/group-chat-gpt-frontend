@@ -27,6 +27,34 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .room-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.5rem 1rem;
+  }
+  .room-actions {
+    margin-top: 0.5rem;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .room-page {
+    padding: 0.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .room-header-bar {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+  }
+  .room-info h3 {
+    font-size: 1rem;
+  }
+  .room-meta {
+    font-size: 0.7rem;
+  }
+}
 }
 
 .room-header-bar {

@@ -11,6 +11,28 @@ body {
   justify-content: center;
   height: 100%;
   text-align: center;
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .welcome-container {
+    padding: 1rem;
+    max-width: 95vw;
+  }
+  .welcome-icon {
+    font-size: 2.5rem;
+  }
+  .default-view {
+    flex-direction: column;
+    padding: 1rem 0.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .welcome-container h1 {
+    font-size: 1.2rem;
+  }
+  .welcome-container p {
+    font-size: 0.95rem;
+  }
+}
 }
 
 .welcome-container {

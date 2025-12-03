@@ -9,6 +9,31 @@
     flex-shrink: 0;
     transition: transform 0.3s ease;
     z-index: 100;
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 180px;
+        min-width: 120px;
+        padding: 0.5rem 0.25rem;
+    }
+    .sidebar-header {
+        padding: 0.5rem;
+    }
+}
+@media (max-width: 480px) {
+    .sidebar {
+        width: 100vw;
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 200;
+        transform: translateX(-100%);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+}
 }
 
 .sidebar-header {
