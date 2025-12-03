@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "private": false,
   "dependencies": {
+    "react-markdown": "^9.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-breaks": "^3.0.2",
+    "prismjs": "^1.29.0",
+    "react-syntax-highlighter": "^15.5.0",
     "@apollo/client": "^3.9.5",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@fortawesome/fontawesome-free": "^6.5.1",

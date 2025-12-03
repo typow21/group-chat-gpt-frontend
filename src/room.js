@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { gql, useSubscription } from "@apollo/client";
-import CodeBlock from "./codeBlock";
+// ...existing code...
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import "./room.css";
 import "./navbar.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -208,31 +211,14 @@ const Room = function () {
   };
 
   const renderMessageContent = (content) => {
-    const segments = content.split(/(```\w+\n[\s\S]+?\n```)/);
-
     return (
-      <>
-        {segments.map((segment, index) => {
-          if (segment.startsWith("```")) {
-            const language = segment.match(/^```(\w+)\n/)[1];
-            const code = segment.replace(/^```(\w+)\n/, "").replace(/```$/, "");
-            return <CodeBlock key={index} language={language} code={code} />;
-          } else {
-            // Split by @chatgpt mentions and wrap them
-            const parts = segment.split(/(@chatgpt)/gi);
-            return (
-              <p key={index}>
-                {parts.map((part, i) => {
-                  if (part.toLowerCase() === '@chatgpt') {
-                    return <span key={i} className="chatgpt-mention">{part}</span>;
-                  }
-                  return part;
-                })}
-              </p>
-            );
-          }
-        })}
-      </>
+      <div className="message-text">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkBreaks]}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
     );
   };
 

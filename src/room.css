@@ -224,11 +224,22 @@ body.light-mode .icon-btn[aria-expanded="true"] .button-label {
 }
 
 .message-text {
-  display: inline;
-  white-space: pre-wrap;
+  display: block;
+  white-space: normal;
   word-wrap: break-word;
   word-break: break-word;
-  font-size: 1.125rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.message-text p {
+  margin: 0.4rem 0;
+}
+
+.message-text ul,
+.message-text ol {
+  margin: 0.5rem 0;
+  padding-left: 1.4rem;
 }
 
 /* Ensure code blocks are block-level */
