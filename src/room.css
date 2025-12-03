@@ -666,8 +666,8 @@ body.light-mode .markdown-table th {
   letter-spacing: 0.02em;
 }
 
-/* ChatGPT Message Styling */
-.chatgpt-message {
+/* Bot Message Styling */
+.chatgpt-message, .bot-message {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.08)) !important;
   border: 1px solid rgba(139, 92, 246, 0.22) !important;
   max-width: 80%;
@@ -675,7 +675,7 @@ body.light-mode .markdown-table th {
   overflow: visible;
 }
 
-.chatgpt-message::before {
+.chatgpt-message::before, .bot-message::before {
   content: '';
   position: absolute;
   inset: -1px;
@@ -711,7 +711,7 @@ body.light-mode .markdown-table th {
   }
 }
 
-.chatgpt-message .message-sender {
+.chatgpt-message .message-sender, .bot-message .message-sender {
   color: var(--accent-color) !important;
 }
 

@@ -62,8 +62,8 @@ body.light-mode .message.chatgpt-message {
     0 0 30px rgba(16, 163, 127, 0.15);
 }
 
-/* @chatgpt mention glow */
-.chatgpt-mention {
+/* Bot mention glow */
+.chatgpt-mention, .bot-mention {
   color: #10a37f;
   font-weight: 600;
   text-shadow: 0 0 8px rgba(16, 163, 127, 0.6),
@@ -73,7 +73,7 @@ body.light-mode .message.chatgpt-message {
   background: rgba(16, 163, 127, 0.1);
 }
 
-body.light-mode .chatgpt-mention {
+body.light-mode .chatgpt-mention, body.light-mode .bot-mention {
   color: #0d8a6a;
   text-shadow: 0 0 6px rgba(16, 163, 127, 0.4),
     0 0 10px rgba(16, 163, 127, 0.2);

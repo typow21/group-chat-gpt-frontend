@@ -57,6 +57,7 @@ const Room = function () {
   const [sendMessageText, setSendMessageText] = useState("");
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [showUsersPopup, setShowUsersPopup] = useState(false);
+  const [showBotsPopup, setShowBotsPopup] = useState(false);
   // Sticky Ask AI state placed with other state hooks to satisfy rules-of-hooks
   const [aiSticky, setAiSticky] = useState(false);
   // Mention autocomplete state
@@ -292,14 +293,19 @@ const Room = function () {
   // Removed: ensurePrefix (no longer used)
 
   function addAI() {
-    // Insert a single leading @chatgpt mention on demand
+    // Cycle through available bots or use first bot
+    const bots = room?.assistants || [{name: 'ChatGPT'}];
+    const firstBot = bots[0].name;
+    
+    // Insert a single leading bot mention on demand
     setSendMessageText(prev => {
-      const hasMention = /\B@chatgpt\b/i.test(prev);
+      const botPattern = new RegExp(`\\B@(${bots.map(b => b.name).join('|')})\\b`, 'i');
+      const hasMention = botPattern.test(prev);
       if (hasMention) {
-        const stripped = prev.replace(/\s*\B@chatgpt\b\s*/ig, ' ');
-        return `@chatgpt ${stripped}`.trim();
+        const stripped = prev.replace(new RegExp(`\\s*\\B@(${bots.map(b => b.name).join('|')})\\b\\s*`, 'ig'), ' ');
+        return `@${firstBot} ${stripped}`.trim();
       }
-      return `@chatgpt ${prev}`.trim();
+      return `@${firstBot} ${prev}`.trim();
     });
     setAiSticky(true);
     document.getElementById("sendMsgInput")?.focus();
@@ -510,8 +516,9 @@ const Room = function () {
       .map(u => u.username)
       .filter(name => name && name.toLowerCase() !== currentUsername);
     
-    // Always include chatgpt as an option
-    const allSuggestions = ['chatgpt', ...users];
+    // Include all bots from the room
+    const bots = room.assistants?.map(a => a.name) || ['chatgpt'];
+    const allSuggestions = [...bots, ...users];
     
     const q = query.toLowerCase();
     const filtered = allSuggestions
@@ -612,6 +619,78 @@ const Room = function () {
       .finally(() => setIsGeneratingName(false));
   };
 
+  // Bot management functions
+  const [newBotName, setNewBotName] = useState('');
+  const [newBotInstructions, setNewBotInstructions] = useState('');
+  const [editingBot, setEditingBot] = useState(null);
+
+  const addBot = () => {
+    if (!newBotName.trim()) return;
+    
+    authFetch(process.env.REACT_APP_ENDPOINT + "/add-bot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        roomId: room_id,
+        botName: newBotName.trim(),
+        customInstructions: newBotInstructions.trim() || null
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setRoom(data.room);
+          setNewBotName('');
+          setNewBotInstructions('');
+        } else if (data.error) {
+          alert(data.error);
+        }
+      })
+      .catch((error) => console.error("Error adding bot:", error));
+  };
+
+  const removeBot = (botName) => {
+    if (!confirm(`Remove ${botName}?`)) return;
+    
+    authFetch(process.env.REACT_APP_ENDPOINT + "/remove-bot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId: room_id, botName }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setRoom(data.room);
+        } else if (data.error) {
+          alert(data.error);
+        }
+      })
+      .catch((error) => console.error("Error removing bot:", error));
+  };
+
+  const updateBot = (botName, newName, instructions) => {
+    authFetch(process.env.REACT_APP_ENDPOINT + "/update-bot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        roomId: room_id,
+        botName,
+        newName: newName?.trim() || null,
+        customInstructions: instructions?.trim() || null
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setRoom(data.room);
+          setEditingBot(null);
+        } else if (data.error) {
+          alert(data.error);
+        }
+      })
+      .catch((error) => console.error("Error updating bot:", error));
+  };
+
   return (
     <div className="room-page">
       <div className="room-header-bar">
@@ -636,6 +715,9 @@ const Room = function () {
             disabled={isGeneratingName}
           >
             <i className={`fas fa-magic ${isGeneratingName ? 'fa-spin' : ''}`}></i>
+          </button>
+          <button className="action-btn" onClick={() => setShowBotsPopup(!showBotsPopup)} title="Manage Bots">
+            <i className="fas fa-robot"></i>
           </button>
           <button className="action-btn" onClick={toggleSharePopup} title="Invite User">
             <i className="fas fa-user-plus"></i>
@@ -708,11 +790,155 @@ const Room = function () {
         </div>
       )}
 
+      {showBotsPopup && (
+        <div className="popup-background" onClick={() => setShowBotsPopup(false)}>
+          <div className="popup" onClick={e => e.stopPropagation()}>
+            <h3>Manage Bots</h3>
+            <div className="users" style={{ marginBottom: '1rem' }}>
+              {room?.assistants?.map((bot) => (
+                <div key={bot.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 'bold' }}>
+                      ✨ {bot.name}
+                    </p>
+                    {bot.customInstructions && (
+                      <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem' }}>
+                        {bot.customInstructions.substring(0, 60)}{bot.customInstructions.length > 60 ? '...' : ''}
+                      </small>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      onClick={() => setEditingBot(bot)} 
+                      className="submit-button"
+                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => removeBot(bot.name)} 
+                      className="close-button"
+                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
+              <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}>Add New Bot</h4>
+              <input
+                type="text"
+                placeholder="Bot name (e.g., CodeHelper)"
+                value={newBotName}
+                onChange={(e) => setNewBotName(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  marginBottom: '0.75rem',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.95rem'
+                }}
+              />
+              <textarea
+                placeholder="Custom personality/instructions (optional)"
+                value={newBotInstructions}
+                onChange={(e) => setNewBotInstructions(e.target.value)}
+                rows="3"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  marginBottom: '0.75rem',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.9rem',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+              <button onClick={addBot} className="submit-button" style={{ width: '100%', marginBottom: '0.5rem' }}>
+                Add Bot
+              </button>
+            </div>
+
+            <button onClick={() => setShowBotsPopup(false)} className="close-button full-width">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {editingBot && (
+        <div className="popup-background" onClick={() => setEditingBot(null)}>
+          <div className="popup" onClick={e => e.stopPropagation()}>
+            <h3>Edit Bot: {editingBot.name}</h3>
+            <input
+              type="text"
+              placeholder="New bot name (optional)"
+              defaultValue={editingBot.name}
+              id="edit-bot-name"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginBottom: '0.75rem',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '8px',
+                color: 'var(--text-primary)',
+                fontSize: '0.95rem'
+              }}
+            />
+            <textarea
+              placeholder="Custom personality/instructions"
+              defaultValue={editingBot.customInstructions || ''}
+              id="edit-bot-instructions"
+              rows="5"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginBottom: '1rem',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '8px',
+                color: 'var(--text-primary)',
+                fontSize: '0.9rem',
+                resize: 'vertical',
+                fontFamily: 'inherit'
+              }}
+            />
+            <div className="button-group">
+              <button onClick={() => setEditingBot(null)} className="close-button">
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  const newName = document.getElementById('edit-bot-name').value;
+                  const instructions = document.getElementById('edit-bot-instructions').value;
+                  updateBot(editingBot.name, newName !== editingBot.name ? newName : null, instructions);
+                }} 
+                className="submit-button"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="room-container">
         <div className="chat-container">
           <div className="messages">
             {messages.map((message) => {
-              const isChatGPT = message.sender.toLowerCase().includes('chatgpt');
+              const bots = room?.assistants || [{name: 'ChatGPT'}];
+              const botNames = bots.map(b => b.name.toLowerCase());
+              const isBotMessage = botNames.includes(message.sender.toLowerCase());
               const isOwnMessage = message.sender === userId;
               const senderUsername = room?.users?.[message.sender]?.username || message.sender;
               const isPending = message.pending;
@@ -720,12 +946,12 @@ const Room = function () {
               return (
                 <div
                   key={message.id}
-                  className={`message ${isChatGPT ? 'chatgpt-message' : ''} ${isPending ? 'pending' : ''}`}
+                  className={`message ${isBotMessage ? 'chatgpt-message' : ''} ${isPending ? 'pending' : ''}`}
                   id={isOwnMessage ? "sent" : "recieved"}
                 >
                   {renderMessageContent(message.content)}
                   <span className="message-sender">
-                    {isChatGPT ? 'ChatGPT' : (isOwnMessage ? 'You' : `@${senderUsername}`)}
+                    {isBotMessage ? message.sender : (isOwnMessage ? 'You' : `@${senderUsername}`)}
                   </span>
                 </div>
               );
@@ -780,7 +1006,9 @@ const Room = function () {
                 <div className="mention-popup">
                   <div className="mention-popup-header">Mention someone</div>
                   {mentionSuggestions.map((name, index) => {
-                    const isAI = name.toLowerCase() === 'chatgpt';
+                    const bots = room?.assistants || [{name: 'ChatGPT'}];
+                    const botNames = bots.map(b => b.name.toLowerCase());
+                    const isAI = botNames.includes(name.toLowerCase());
                     const initial = isAI ? '✨' : name.charAt(0).toUpperCase();
                     const isSelected = index === mentionSelectedIndex;
                     return (

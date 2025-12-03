@@ -224,7 +224,7 @@ function Home() {
           <div className="tip-card">
             <span className="tip-icon">✨</span>
             <div>
-              <strong>Pro tip:</strong> Use @chatgpt in any conversation to get AI assistance!
+              <strong>Pro tip:</strong> Mention @bot_name in any conversation to get AI assistance! You can add multiple bots with custom personalities.
             </div>
           </div>
         </div>

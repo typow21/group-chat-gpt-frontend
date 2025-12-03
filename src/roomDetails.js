@@ -34,7 +34,7 @@ function RoomDetails() {
             }
             setMyTypingInd(true);
             if (event.data.includes('@')) {
-                document.getElementById('messageInput').value = '@chatgpt ';
+                // Type @ to mention bots or users
             }
         };
 
@@ -309,7 +309,7 @@ function RoomDetails() {
                 <div id="input-container">
                     <p id="typingIndicator"></p>
                     <div id="messageInputContainer">
-                        <input type="text" id="messageInput" placeholder="Add @chatgpt to interact with ChatGPT" style={{ borderStyle: 'none', borderColor: 'Transparent', overflow: 'auto' }} />
+                        <input type="text" id="messageInput" placeholder="Type @bot_name to interact with AI" style={{ borderStyle: 'none', borderColor: 'Transparent', overflow: 'auto' }} />
                         <button id="sendMessageButton" onClick={sendMessage}>Send Message</button>
                     </div>
                 </div>
