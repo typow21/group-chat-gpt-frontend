@@ -11,6 +11,7 @@ import { checkAuth } from "./navbar";
 import UserInput from "./userInput";
 import { useParams } from "react-router-dom";
 import { authFetch } from "./api";
+import { encryptMessage, decryptMessage, decryptMessages, isEncryptionSupported, shareRoomKeyWithServer } from "./crypto";
 
 const MESSAGE_SUB = function (room_id, user_id) {
   return gql`
@@ -66,6 +67,8 @@ const Room = function () {
   const [isGeneratingName, setIsGeneratingName] = useState(false);
   // Typing indicator state
   const [typingUsers, setTypingUsers] = useState({});
+  // Encryption status
+  const [encryptionEnabled] = useState(isEncryptionSupported());
   const typingTimeoutRef = useRef(null);
   const lastTypingStatusRef = useRef(false);
   let userId = localStorage.getItem("userId");
@@ -105,9 +108,19 @@ const Room = function () {
           }
           return response.json();
         })
-        .then((data) => {
+        .then(async (data) => {
           setRoom(data);
-          setMessages([...data.messages]);
+          // Share room key with server for AI decryption
+          if (encryptionEnabled) {
+            shareRoomKeyWithServer(room_id, process.env.REACT_APP_ENDPOINT);
+          }
+          // Decrypt messages if encryption is supported
+          if (encryptionEnabled && data.messages) {
+            const decrypted = await decryptMessages(room_id, data.messages);
+            setMessages(decrypted);
+          } else {
+            setMessages([...data.messages]);
+          }
           // Enable sticky Ask AI for two-party rooms with a bot
           // No automatic mentions; star button adds @chatgpt on demand
         })
@@ -116,13 +129,19 @@ const Room = function () {
         });
     };
     fetchRoom();
-  }, [room_id]);
+  }, [room_id, encryptionEnabled]);
 
   const { loading_ws, error_ws } = useSubscription(MESSAGE_SUB(room_id, userId), {
-    onSubscriptionData: (subscriptionResult) => {
+    onSubscriptionData: async (subscriptionResult) => {
       const newMessage = subscriptionResult?.subscriptionData?.data?.messages;
       if (newMessage) {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
+        // Decrypt the incoming message if encryption is enabled
+        if (encryptionEnabled && newMessage.content) {
+          const decryptedContent = await decryptMessage(room_id, newMessage.content);
+          setMessages((prevMessages) => [...prevMessages, { ...newMessage, content: decryptedContent }]);
+        } else {
+          setMessages((prevMessages) => [...prevMessages, newMessage]);
+        }
       }
     },
   });
@@ -214,7 +233,7 @@ const Room = function () {
     document.getElementById("sendMsgInput")?.focus();
   }
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (sendMessageText === "") {
       return;
     }
@@ -227,9 +246,14 @@ const Room = function () {
     
     // Send exactly what the user typed; no automatic mentions
     let contentToSend = sendMessageText;
-    // Parse unique @mentions from the content
+    // Parse unique @mentions from the content (before encryption)
     const mentionMatches = Array.from(contentToSend.matchAll(/@([A-Za-z0-9._-]+)/g));
     const mentionedUsers = Array.from(new Set(mentionMatches.map(m => m[1])));
+
+    // Encrypt all messages - backend will decrypt for AI processing
+    if (encryptionEnabled) {
+      contentToSend = await encryptMessage(room_id, contentToSend);
+    }
 
     authFetch(process.env.REACT_APP_ENDPOINT + "/send-message", {
       method: "POST",
@@ -511,6 +535,11 @@ const Room = function () {
           {room && (
             <span className="room-meta">
               {Object.keys(room.users).length} members
+              {encryptionEnabled && (
+                <span className="encryption-badge" title="End-to-end encrypted">
+                  🔒
+                </span>
+              )}
             </span>
           )}
         </div>

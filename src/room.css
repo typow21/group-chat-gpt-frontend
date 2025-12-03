@@ -257,6 +257,15 @@ body.light-mode .mention-item.mention-ai.mention-selected {
 .room-meta {
   font-size: 0.8rem;
   color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.encryption-badge {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  cursor: help;
 }
 
 .room-actions {
