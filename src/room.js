@@ -48,6 +48,7 @@ const Room = function () {
   // Mention autocomplete state
   const [showMentionPopup, setShowMentionPopup] = useState(false);
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0);
   const [mentionDebounceId, setMentionDebounceId] = useState(null);
   let userId = localStorage.getItem("userId");
   const messagesEndRef = useRef(null);
@@ -209,10 +210,37 @@ const Room = function () {
   };
 
   const handleKeyDown = (event) => {
-    // Tab key autofill: if mention popup is showing, insert the first suggestion
-    if (event.key === "Tab" && showMentionPopup && mentionSuggestions.length > 0) {
-      event.preventDefault();
-      insertMention(mentionSuggestions[0]);
+    // Arrow keys and Enter for mention navigation
+    if (showMentionPopup && mentionSuggestions.length > 0) {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setMentionSelectedIndex(prev => 
+          prev < mentionSuggestions.length - 1 ? prev + 1 : 0
+        );
+        return;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setMentionSelectedIndex(prev => 
+          prev > 0 ? prev - 1 : mentionSuggestions.length - 1
+        );
+        return;
+      }
+      if (event.key === "Enter") {
+        event.preventDefault();
+        insertMention(mentionSuggestions[mentionSelectedIndex]);
+        return;
+      }
+      if (event.key === "Tab") {
+        event.preventDefault();
+        insertMention(mentionSuggestions[mentionSelectedIndex]);
+        return;
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowMentionPopup(false);
+        return;
+      }
     }
   };
 
@@ -288,11 +316,15 @@ const Room = function () {
       if (mentionDebounceId) {
         clearTimeout(mentionDebounceId);
       }
-      const tid = setTimeout(() => updateMentionSuggestions(q), 150);
+      const tid = setTimeout(() => {
+        updateMentionSuggestions(q);
+        setMentionSelectedIndex(0); // Reset selection when suggestions update
+      }, 150);
       setMentionDebounceId(tid);
       setShowMentionPopup(true);
     } else {
       setShowMentionPopup(false);
+      setMentionSelectedIndex(0);
     }
   };
 
@@ -307,6 +339,7 @@ const Room = function () {
     const newText = replacedBefore + after;
     setSendMessageText(newText);
     setShowMentionPopup(false);
+    setMentionSelectedIndex(0);
     
     // Restore focus and move caret to end of inserted mention
     if (inputRef.current) {
@@ -436,15 +469,24 @@ const Room = function () {
               />
               {showMentionPopup && mentionSuggestions.length > 0 && (
                 <div className="mention-popup">
-                  {mentionSuggestions.map((name) => (
-                    <div
-                      key={name}
-                      className="mention-item"
-                      onClick={() => insertMention(name)}
-                    >
-                      @{name}
-                    </div>
-                  ))}
+                  <div className="mention-popup-header">Mention someone</div>
+                  {mentionSuggestions.map((name, index) => {
+                    const isAI = name.toLowerCase() === 'chatgpt';
+                    const initial = isAI ? '✨' : name.charAt(0).toUpperCase();
+                    const isSelected = index === mentionSelectedIndex;
+                    return (
+                      <div
+                        key={name}
+                        className={`mention-item ${isAI ? 'mention-ai' : ''} ${isSelected ? 'mention-selected' : ''}`}
+                        onClick={() => insertMention(name)}
+                        onMouseEnter={() => setMentionSelectedIndex(index)}
+                      >
+                        <span className="mention-item-avatar">{initial}</span>
+                        <span className="mention-item-name">@{name}</span>
+                        {isSelected && <span className="mention-item-hint">↵</span>}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <i onClick={sendMessage} id="send-btn" className="fas fa-paper-plane" title="Send"></i>
