@@ -126,7 +126,7 @@ const Room = function () {
     return botNames.length > 0;
   };
 
-  const isTwoPartyWithBot = () => isTwoPartyWithBotRoom(room); // unused
+  // Removed: isTwoPartyWithBot (no longer used)
 
   // Removed: ensurePrefix (no longer used)
 
