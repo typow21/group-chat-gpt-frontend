@@ -71,6 +71,10 @@ const Room = function () {
   const [typingUsers, setTypingUsers] = useState({});
   // Encryption status
   const [encryptionEnabled] = useState(isEncryptionSupported());
+  // Bot management state
+  const [newBotName, setNewBotName] = useState('');
+  const [newBotInstructions, setNewBotInstructions] = useState('');
+  const [editingBot, setEditingBot] = useState(null);
   const typingTimeoutRef = useRef(null);
   const lastTypingStatusRef = useRef(false);
   let userId = localStorage.getItem("userId");
@@ -620,10 +624,6 @@ const Room = function () {
   };
 
   // Bot management functions
-  const [newBotName, setNewBotName] = useState('');
-  const [newBotInstructions, setNewBotInstructions] = useState('');
-  const [editingBot, setEditingBot] = useState(null);
-
   const addBot = () => {
     if (!newBotName.trim()) return;
     
@@ -650,7 +650,7 @@ const Room = function () {
   };
 
   const removeBot = (botName) => {
-    if (!confirm(`Remove ${botName}?`)) return;
+    if (!window.confirm(`Remove ${botName}?`)) return;
     
     authFetch(process.env.REACT_APP_ENDPOINT + "/remove-bot", {
       method: "POST",
