@@ -725,6 +725,7 @@ body.light-mode .fade-overlay {
 
 .input-container {
   padding: 0.75rem 1.5rem 1rem 1.5rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   background: var(--background-dark);
   display: flex;
   align-items: center;
@@ -736,6 +737,8 @@ body.light-mode .fade-overlay {
   margin: 0 auto;
   z-index: 10;
   flex-shrink: 0;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .input-container>* {
@@ -748,6 +751,7 @@ body.light-mode .input-container {
 
 .input-wrapper {
   flex: 1;
+  min-width: 0;
   position: relative;
   display: flex;
   align-items: center;
@@ -757,6 +761,7 @@ body.light-mode .input-container {
   padding: 0.75rem 1rem;
   transition: all 0.2s ease;
   gap: 0.5rem;
+  -webkit-appearance: none;
 }
 
 .input-wrapper:focus-within {
@@ -1081,12 +1086,14 @@ body.light-mode .input-container {
   }
 
   .input-container {
-    padding: 1rem 0.75rem;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    padding: 0.75rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    gap: 0.75rem;
   }
 
   .input-wrapper {
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.875rem;
+    min-width: 0;
   }
 
   #sendMsgInput {
@@ -1169,22 +1176,26 @@ body.light-mode .input-container {
   }
 
   .input-wrapper {
-    padding: 0.625rem 0.875rem;
+    padding: 0.5rem 0.75rem;
+    min-width: 0;
   }
 
   #sendMsgInput {
-    font-size: 0.95rem;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    min-width: 0;
   }
 
   #ai-btn,
   #send-btn {
     font-size: 1rem;
     padding: 0.4rem;
+    flex-shrink: 0;
   }
 
   .input-container {
-    padding: 0.875rem 0.625rem;
-    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom));
+    padding: 0.625rem 0.5rem;
+    padding-bottom: calc(0.625rem + env(safe-area-inset-bottom, 0px));
+    gap: 0.5rem;
   }
 
   .popup {
