@@ -51,7 +51,8 @@ const Room = function () {
   checkAuth();
   let { room_id } = useParams();
   const [messages, setMessages] = useState([]);
-  const [room, setRoom] = useState();
+  const [room, setRoom] = useState(null);
+  const [isLoadingRoom, setIsLoadingRoom] = useState(true);
   const [shareRoomUsername, setShareRoomUsername] = useState("");
   const [sendMessageText, setSendMessageText] = useState("");
   const [showSharePopup, setShowSharePopup] = useState(false);
@@ -72,7 +73,19 @@ const Room = function () {
   const typingTimeoutRef = useRef(null);
   const lastTypingStatusRef = useRef(false);
   let userId = localStorage.getItem("userId");
-  const username = localStorage.getItem("user") || userId;
+  // Get username - handle both string and JSON object storage
+  const getUsername = () => {
+    const stored = localStorage.getItem("user");
+    if (!stored) return userId;
+    try {
+      const parsed = JSON.parse(stored);
+      return parsed.username || parsed.name || userId;
+    } catch {
+      // Not JSON, use as-is
+      return stored;
+    }
+  };
+  const username = getUsername();
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -100,6 +113,13 @@ const Room = function () {
   };
 
   useEffect(() => {
+    // Clear previous room data immediately when switching rooms
+    setMessages([]);
+    setRoom(null);
+    setIsLoadingRoom(true);
+    setTypingUsers({});
+    setSendMessageText("");
+    
     const fetchRoom = () => {
       authFetch(process.env.REACT_APP_ENDPOINT + "/room/" + room_id)
         .then((response) => {
@@ -121,11 +141,13 @@ const Room = function () {
           } else {
             setMessages([...data.messages]);
           }
+          setIsLoadingRoom(false);
           // Enable sticky Ask AI for two-party rooms with a bot
           // No automatic mentions; star button adds @chatgpt on demand
         })
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
+          setIsLoadingRoom(false);
         });
     };
     fetchRoom();
@@ -136,12 +158,18 @@ const Room = function () {
       const newMessage = subscriptionResult?.subscriptionData?.data?.messages;
       if (newMessage) {
         // Decrypt the incoming message if encryption is enabled
+        let messageContent = newMessage.content;
         if (encryptionEnabled && newMessage.content) {
-          const decryptedContent = await decryptMessage(room_id, newMessage.content);
-          setMessages((prevMessages) => [...prevMessages, { ...newMessage, content: decryptedContent }]);
-        } else {
-          setMessages((prevMessages) => [...prevMessages, newMessage]);
+          messageContent = await decryptMessage(room_id, newMessage.content);
         }
+        
+        setMessages((prevMessages) => {
+          // Remove any pending/temp messages from the same sender to avoid duplicates
+          const filtered = prevMessages.filter(m => 
+            !m.id?.toString().startsWith('temp-') || m.sender !== newMessage.sender
+          );
+          return [...filtered, { ...newMessage, content: messageContent }];
+        });
       }
     },
   });
@@ -210,6 +238,26 @@ const Room = function () {
 
   if (loading_ws) return <div className="loading-state">Connecting to chat...</div>;
   if (error_ws) return <div className="error-state">Error: {error_ws.message}</div>;
+  
+  // Show minimal loading state while switching rooms
+  if (isLoadingRoom) {
+    return (
+      <div className="room-page">
+        <div className="room-header-bar">
+          <div className="room-info">
+            <h3 id="roomName">Loading...</h3>
+          </div>
+        </div>
+        <div className="room-container">
+          <div className="chat-container">
+            <div className="messages">
+              <div className="loading-state" style={{ margin: 'auto' }}>Loading messages...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Bot detection helpers
 
@@ -244,8 +292,19 @@ const Room = function () {
       clearTimeout(typingTimeoutRef.current);
     }
     
+    // Store original message for optimistic update
+    const originalMessage = sendMessageText;
+    const tempId = `temp-${Date.now()}`;
+    
+    // Optimistic update - show message immediately
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { id: tempId, content: originalMessage, sender: userId, pending: true }
+    ]);
+    setSendMessageText("");
+    
     // Send exactly what the user typed; no automatic mentions
-    let contentToSend = sendMessageText;
+    let contentToSend = originalMessage;
     // Parse unique @mentions from the content (before encryption)
     const mentionMatches = Array.from(contentToSend.matchAll(/@([A-Za-z0-9._-]+)/g));
     const mentionedUsers = Array.from(new Set(mentionMatches.map(m => m[1])));
@@ -275,9 +334,11 @@ const Room = function () {
       .then((data) => {
         if ("error" in data) {
           console.error('Send message error:', data.error);
+          // Remove optimistic message on error
+          setMessages((prevMessages) => prevMessages.filter(m => m.id !== tempId));
+          setSendMessageText(originalMessage); // Restore the message
         } else {
-          // Don't manually add message - WebSocket subscription will handle it
-          setSendMessageText("");
+          // WebSocket subscription will handle adding the real message and removing temp
           
           // Check if room was auto-renamed
           if (data.newRoomName) {
@@ -628,14 +689,20 @@ const Room = function () {
           <div className="messages">
             {messages.map((message) => {
               const isChatGPT = message.sender.toLowerCase().includes('chatgpt');
+              const isOwnMessage = message.sender === userId;
+              const senderUsername = room?.users?.[message.sender]?.username || message.sender;
+              const isPending = message.pending;
+              
               return (
                 <div
                   key={message.id}
-                  className={`message ${isChatGPT ? 'chatgpt-message' : ''}`}
-                  id={message.sender === userId ? "sent" : "recieved"}
+                  className={`message ${isChatGPT ? 'chatgpt-message' : ''} ${isPending ? 'pending' : ''}`}
+                  id={isOwnMessage ? "sent" : "recieved"}
                 >
                   {renderMessageContent(message.content)}
-                  <span>{message.sender}</span>
+                  <span className="message-sender">
+                    {isChatGPT ? '✨ ChatGPT' : (isOwnMessage ? 'You' : `@${senderUsername}`)}
+                  </span>
                 </div>
               );
             })}
@@ -652,7 +719,13 @@ const Room = function () {
               </div>
               <span className="typing-text">
                 {(() => {
-                  const names = Object.values(typingUsers).map(u => u.username);
+                  const names = Object.values(typingUsers).map(u => {
+                    // Handle case where username might be an object or string
+                    if (typeof u.username === 'string') return u.username;
+                    if (typeof u.username === 'object' && u.username?.username) return u.username.username;
+                    if (typeof u === 'string') return u;
+                    return 'Someone';
+                  });
                   if (names.length === 1) {
                     return `${names[0]} is typing...`;
                   } else if (names.length === 2) {
@@ -664,8 +737,6 @@ const Room = function () {
               </span>
             </div>
           )}
-
-          <div className="fade-overlay"></div>
 
           <div className="input-container">
             <div className="input-wrapper">
