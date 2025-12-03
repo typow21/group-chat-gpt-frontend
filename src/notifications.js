@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './notifications.css';
 import { authFetch } from './api';
 
@@ -6,6 +7,7 @@ function Notifications({ userId }) {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
+    const navigate = useNavigate();
 
     const fetchNotifications = useCallback(async () => {
         try {
@@ -94,6 +96,58 @@ function Notifications({ userId }) {
         setShowDropdown(!showDropdown);
     };
 
+    const acceptFriendRequest = async (notif) => {
+        try {
+            const fromUserId = notif.from_user_id;
+            if (!fromUserId) {
+                console.error('No from_user_id in notification');
+                return;
+            }
+            const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/accept-friend-request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ from_user: fromUserId, to_user: userId })
+            });
+            if (response.ok) {
+                await deleteNotification(notif.id);
+                fetchNotifications();
+                fetchUnreadCount();
+            }
+        } catch (error) {
+            console.error('Error accepting friend request:', error);
+        }
+    };
+
+    const denyFriendRequest = async (notif) => {
+        try {
+            const fromUserId = notif.from_user_id;
+            if (!fromUserId) {
+                console.error('No from_user_id in notification');
+                return;
+            }
+            const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/deny-friend-request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ from_user: fromUserId, to_user: userId })
+            });
+            if (response.ok) {
+                await deleteNotification(notif.id);
+                fetchNotifications();
+                fetchUnreadCount();
+            }
+        } catch (error) {
+            console.error('Error denying friend request:', error);
+        }
+    };
+
+    const goToRoom = (notif) => {
+        const roomId = notif.metadata?.room_id;
+        if (roomId) {
+            setShowDropdown(false);
+            navigate(`/room/${roomId}`);
+        }
+    };
+
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'friend_request':
@@ -140,12 +194,41 @@ function Notifications({ userId }) {
                                     <div className="notification-content">
                                         <h4>{notif.title}</h4>
                                         <p>{notif.message}</p>
+                                        {/* Link to room for message mentions */}
+                                        {notif.type === 'message_mention' && notif.metadata?.room_id && (
+                                            <button
+                                                onClick={() => goToRoom(notif)}
+                                                className="go-to-room-btn"
+                                            >
+                                                Go to chat →
+                                            </button>
+                                        )}
                                         <span className="notification-time">
                                             {new Date(notif.created_at).toLocaleString()}
                                         </span>
                                     </div>
                                     <div className="notification-actions">
-                                        {!notif.read && (
+                                        {/* Friend request: show accept/deny buttons */}
+                                        {notif.type === 'friend_request' && !notif.read && (
+                                            <>
+                                                <button
+                                                    onClick={() => acceptFriendRequest(notif)}
+                                                    className="accept-btn"
+                                                    title="Accept friend request"
+                                                >
+                                                    ✓
+                                                </button>
+                                                <button
+                                                    onClick={() => denyFriendRequest(notif)}
+                                                    className="deny-btn"
+                                                    title="Deny friend request"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </>
+                                        )}
+                                        {/* Other notifications: show mark as read */}
+                                        {notif.type !== 'friend_request' && !notif.read && (
                                             <button
                                                 onClick={() => markAsRead(notif.id)}
                                                 className="mark-read-btn"
