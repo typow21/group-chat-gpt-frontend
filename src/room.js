@@ -44,7 +44,7 @@ const Room = function () {
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [showUsersPopup, setShowUsersPopup] = useState(false);
   // Sticky Ask AI state placed with other state hooks to satisfy rules-of-hooks
-  const [aiSticky, setAiSticky] = useState(true);
+  const [aiSticky, setAiSticky] = useState(false);
   let userId = localStorage.getItem("userId");
   const messagesEndRef = useRef(null);
 
@@ -84,9 +84,7 @@ const Room = function () {
           setRoom(data);
           setMessages([...data.messages]);
           // Enable sticky Ask AI for two-party rooms with a bot
-          if (isTwoPartyWithBotRoom(data)) {
-            setAiSticky(true);
-          }
+          // No automatic mentions; star button adds @chatgpt on demand
         })
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
@@ -134,23 +132,20 @@ const Room = function () {
 
   // Removed useEffect to satisfy rules-of-hooks; set sticky during room fetch
 
-  const ensurePrefix = (text) => {
-    // Ensure a single @chatgpt mention at start if sticky is enabled
-    if (!aiSticky) return text;
-    const hasMention = /\B@chatgpt\b/i.test(text);
-    if (hasMention) {
-      // Normalize to single leading mention
-      const stripped = text.replace(/\s*\B@chatgpt\b\s*/ig, ' ');
-      return `@chatgpt ${stripped}`;
-    }
-    return `@chatgpt ${text}`;
-  };
+  // Remove automatic @chatgpt prefixing; keep text unchanged
+  const ensurePrefix = (text) => text;
 
   function addAI() {
-    // Toggle sticky mode when clicking ✨
-    setAiSticky(prev => !prev);
-    // Apply immediately to current input
-    setSendMessageText(prev => ensurePrefix(prev));
+    // Insert a single leading @chatgpt mention on demand
+    setSendMessageText(prev => {
+      const hasMention = /\B@chatgpt\b/i.test(prev);
+      if (hasMention) {
+        const stripped = prev.replace(/\s*\B@chatgpt\b\s*/ig, ' ');
+        return `@chatgpt ${stripped}`.trim();
+      }
+      return `@chatgpt ${prev}`.trim();
+    });
+    setAiSticky(true);
     document.getElementById("sendMsgInput")?.focus();
   }
 
@@ -158,12 +153,8 @@ const Room = function () {
     if (sendMessageText === "") {
       return;
     }
-    // Build content with sticky prefix or two-party bot rule
+    // Send exactly what the user typed; no automatic mentions
     let contentToSend = sendMessageText;
-    const needsAuto = (isTwoPartyWithBot() || aiSticky);
-    if (needsAuto) {
-      contentToSend = ensurePrefix(contentToSend);
-    }
 
     authFetch(process.env.REACT_APP_ENDPOINT + "/send-message", {
       method: "POST",
