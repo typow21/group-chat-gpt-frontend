@@ -6,6 +6,7 @@ function LoginForm() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleUsernameChange = (event) => {
         setUsername(event.target.value);
@@ -35,17 +36,18 @@ function LoginForm() {
             const data = await response.json();
 
             if ("error" in data) {
-                alert(data.error);
+                setError(data.error);
             } else {
                 // Expect backend: { user: {...}, token: "..." }
                 const { user, token } = data || {};
                 if (!token) {
-                    alert('Login succeeded but no token returned.');
+                    console.warn('Login succeeded but no token returned.');
                 }
-                if (user?.id) {
-                    localStorage.setItem('userId', user.id);
-                }
+                // Store userId - use id from user object, or username as fallback
+                const userId = user?.id || user?.username || username;
+                localStorage.setItem('userId', userId);
                 localStorage.setItem('user', JSON.stringify({ ...user, token }));
+                localStorage.setItem('firstName', user?.first_name || '');
                 if (token) {
                     localStorage.setItem('token', token);
                 }
@@ -53,7 +55,7 @@ function LoginForm() {
             }
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
-            alert('Login failed. Please try again.');
+            setError('Login failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -69,6 +71,7 @@ function LoginForm() {
                 </div>
 
                 <form className="login-form" onSubmit={handleLogin}>
+                    {error && <div className="auth-error">{error}</div>}
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
                         <input

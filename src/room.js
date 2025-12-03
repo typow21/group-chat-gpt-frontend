@@ -171,7 +171,7 @@ const Room = function () {
       })
       .then((data) => {
         if ("error" in data) {
-          alert(data.error);
+          console.error('Send message error:', data.error);
         } else {
           // Don't manually add message - WebSocket subscription will handle it
           setSendMessageText("");

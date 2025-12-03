@@ -272,7 +272,7 @@ function RoomDetails() {
             })
             .then((data) => {
                 if (data.error) {
-                    alert(data.error);
+                    console.error('Share room error:', data.error);
                     if (data.redirect) {
                         window.location.href = data.redirect;
                     }

@@ -12,6 +12,7 @@ function SignupForm() {
         phoneNumber: ''
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleChange = (event) => {
         const { id, value } = event.target;
@@ -44,17 +45,18 @@ function SignupForm() {
             if (!token) {
                 console.warn('Signup succeeded but no token returned.');
             }
-            if (user?.id) {
-                localStorage.setItem('userId', user.id);
-            }
+            // Store userId - use id from user object, or username as fallback
+            const userId = user?.id || user?.username || formData.username;
+            localStorage.setItem('userId', userId);
             localStorage.setItem('user', JSON.stringify({ ...user, token }));
+            localStorage.setItem('firstName', user?.first_name || formData.firstName || '');
             if (token) {
                 localStorage.setItem('token', token);
             }
             window.location.href = "./";
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
-            alert('Signup failed. Please try again.');
+            setError('Signup failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -70,6 +72,7 @@ function SignupForm() {
                 </div>
 
                 <form className="signup-form" onSubmit={handleSubmit}>
+                    {error && <div className="auth-error">{error}</div>}
                     <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="firstName">First Name</label>

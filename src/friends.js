@@ -10,6 +10,7 @@ function Friends() {
   const [userSearch, setUserSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [activeTab, setActiveTab] = useState('friends'); // 'friends', 'requests', 'add'
+  const [toast, setToast] = useState('');
   const userId = localStorage.getItem('userId');
   const debounceRef = useRef(null);
 
@@ -95,7 +96,8 @@ function Friends() {
     })
       .then(res => res.json())
       .then(data => {
-        alert(data.message);
+        setToast(data.message);
+        setTimeout(() => setToast(''), 3000);
         handleSearch(userSearch); // Refresh search results
       })
       .catch(err => console.error(err));
@@ -119,6 +121,7 @@ function Friends() {
 
   return (
     <div className="friends-page">
+      {toast && <div className="friends-toast">{toast}</div>}
       <div className="friends-container">
         <div className="friends-header">
           <h1>Friends</h1>

@@ -7,10 +7,30 @@ import { authFetch } from './api';
 function Profile() {
   checkAuth();
   const navigate = useNavigate();
-  const userId = localStorage.getItem('userId');
+  
+  // Get userId from localStorage - fallback to username from user object
+  const getUserId = () => {
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) return storedUserId;
+    
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        return user.id || user.username;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  };
+  
+  const userId = getUserId();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [error, setError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -24,6 +44,12 @@ function Profile() {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!userId) {
+        setError('No user ID found. Please log in again.');
+        setLoading(false);
+        return;
+      }
+      
       try {
         // Get profile from backend
         const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/profile/${userId}`);
@@ -41,12 +67,28 @@ function Profile() {
           const roomCount = data.user_context?.rooms?.length || 0;
           const friendCount = data.user_context?.friends?.length || 0;
           setStats({ roomCount, friendCount });
+          setError(null);
+        } else {
+          const errorText = await response.text();
+          console.error('Profile fetch failed:', response.status, errorText);
+          setError('Failed to load profile. Please try again.');
+          // Fallback to localStorage
+          loadFromLocalStorage();
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
+        setError('Could not connect to server. Showing cached data.');
         // Fallback to localStorage
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        loadFromLocalStorage();
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    const loadFromLocalStorage = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
           const user = JSON.parse(storedUser);
           setFormData({
             firstName: user.first_name || '',
@@ -54,17 +96,23 @@ function Profile() {
             email: user.email || '',
             phoneNumber: user.phone_number || ''
           });
+          // Create a minimal profile from localStorage
+          setProfile({
+            contact: {
+              first_name: user.first_name || '',
+              last_name: user.last_name || '',
+              username: user.username || userId,
+              id: user.id || userId
+            },
+            auth_info: { username: user.username || userId }
+          });
+        } catch (e) {
+          console.error('Error parsing stored user:', e);
         }
-      } finally {
-        setLoading(false);
       }
     };
 
-    if (userId) {
-      fetchProfile();
-    } else {
-      setLoading(false);
-    }
+    fetchProfile();
   }, [userId]);
 
   const handleChange = (e) => {
@@ -74,6 +122,7 @@ function Profile() {
 
   const handleSave = async () => {
     try {
+      setSaveSuccess(false);
       const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/profile/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -86,17 +135,26 @@ function Profile() {
       });
       
       if (response.ok) {
+        const updatedProfile = await response.json();
+        setProfile(updatedProfile);
         setEditing(false);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+        
         // Update localStorage
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         storedUser.first_name = formData.firstName;
         storedUser.last_name = formData.lastName;
         localStorage.setItem('user', JSON.stringify(storedUser));
         localStorage.setItem('firstName', formData.firstName);
+      } else {
+        const errorText = await response.text();
+        console.error('Save failed:', errorText);
+        setError('Failed to save profile. Please try again.');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Failed to save profile. Please try again.');
+      setError('Failed to save profile. Please try again.');
     }
   };
 
@@ -113,18 +171,30 @@ function Profile() {
     );
   }
 
-  const username = profile?.contact?.username || profile?.auth_info?.username || 'User';
+  const username = profile?.contact?.username || profile?.auth_info?.username || userId || 'User';
 
   return (
     <div className="profile-page">
       <div className="profile-content">
+        {/* Error/Success Messages */}
+        {error && (
+          <div className="profile-alert profile-alert-error">
+            {error}
+          </div>
+        )}
+        {saveSuccess && (
+          <div className="profile-alert profile-alert-success">
+            Profile updated successfully!
+          </div>
+        )}
+        
         {/* Profile Header */}
         <div className="profile-header">
           <div className="profile-avatar">
             {formData.firstName?.charAt(0)?.toUpperCase() || username?.charAt(0)?.toUpperCase() || '?'}
           </div>
           <div className="profile-title">
-            <h1>{formData.firstName} {formData.lastName}</h1>
+            <h1>{formData.firstName || username} {formData.lastName}</h1>
             <p className="username">@{username}</p>
           </div>
         </div>
