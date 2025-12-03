@@ -196,8 +196,8 @@ function Notifications({ userId }) {
                                     <div className="notification-content">
                                         <h4>{notif.title}</h4>
                                         <p>{notif.message}</p>
-                                        {/* Link to room for message mentions */}
-                                        {notif.type === 'message_mention' && notif.metadata?.room_id && (
+                                        {/* Link to room for message mentions and room invites */}
+                                        {(notif.type === 'message_mention' || notif.type === 'room_invite') && notif.metadata?.room_id && (
                                             <button
                                                 onClick={() => goToRoom(notif)}
                                                 className="go-to-room-btn"
