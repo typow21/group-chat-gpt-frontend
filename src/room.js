@@ -103,13 +103,37 @@ const Room = function () {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ username: shareRoomUsername, roomId: room_id }),
-    }).then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      toggleSharePopup();
-      return response.json();
-    });
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then(async (data) => {
+        // Update local room state with returned room data so new user appears immediately
+        if (data) {
+          setRoom(data);
+          // If messages are included, decrypt them when encryption is enabled
+          if (encryptionEnabled && data.messages) {
+            try {
+              const decrypted = await decryptMessages(room_id, data.messages);
+              setMessages(decrypted);
+            } catch (e) {
+              console.warn('Failed to decrypt messages after sharing room:', e);
+              setMessages([...data.messages]);
+            }
+          } else if (data.messages) {
+            setMessages([...data.messages]);
+          }
+        }
+        setShareRoomUsername("");
+        toggleSharePopup();
+      })
+      .catch((err) => {
+        console.error('Failed to share room:', err);
+        // Keep popup open so user can retry
+      });
   };
 
   useEffect(() => {
