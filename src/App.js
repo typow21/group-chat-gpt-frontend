@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import Room from "./room";
 import Home from "./home"
+import Rooms from "./rooms";
 import LoginForm from "./login";
 import SignupForm from "./signup";
 import Friends from "./friends";
@@ -17,6 +18,7 @@ function App() {
           <Route element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="/room/:room_id" element={<Room />} />
+            <Route path="rooms" element={<Rooms />} />
             <Route path="friends" element={<Friends />} />
             <Route path="profile" element={<Profile />} />
           </Route>

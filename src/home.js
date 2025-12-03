@@ -17,7 +17,7 @@ function Home() {
     const fetchData = async () => {
       try {
         // Fetch recent rooms
-        const roomsRes = await authFetch(`${process.env.REACT_APP_ENDPOINT}/rooms/${userId}`);
+        const roomsRes = await authFetch(`${process.env.REACT_APP_ENDPOINT}/rooms/user/${userId}`);
         if (roomsRes.ok) {
           const roomsData = await roomsRes.json();
           // Sort by most recent message and take top 3
