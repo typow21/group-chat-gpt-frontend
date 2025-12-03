@@ -175,11 +175,25 @@ export async function importSharedRoomKey(roomId, base64Key) {
 export async function shareRoomKeyWithServer(roomId, apiEndpoint) {
     try {
         const base64Key = await getShareableRoomKey(roomId);
+        // Get token the same way as authFetch
+        let token;
+        try {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                token = localStorage.getItem('token');
+            } else {
+                const parsed = JSON.parse(user);
+                token = parsed?.token || localStorage.getItem('token');
+            }
+        } catch (_e) {
+            token = localStorage.getItem('token');
+        }
+        
         const response = await fetch(`${apiEndpoint}/room-key`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 roomId: roomId,
