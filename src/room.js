@@ -175,6 +175,19 @@ const Room = function () {
         } else {
           // Don't manually add message - WebSocket subscription will handle it
           setSendMessageText("");
+          
+          // Check if room was auto-renamed
+          if (data.newRoomName) {
+            setRoom(prevRoom => ({
+              ...prevRoom,
+              name: data.newRoomName
+            }));
+            // Dispatch event to update sidebar
+            window.dispatchEvent(new CustomEvent('roomRenamed', { 
+              detail: { roomId: room_id, name: data.newRoomName } 
+            }));
+          }
+          
           // Notify mentioned users (best-effort; ignore failures)
           const messageId = data?.message?.id || data?.id; // adapt if backend returns message
           mentionedUsers.forEach((username) => {
@@ -371,11 +384,38 @@ const Room = function () {
     }
   };
 
+  // Generate room name from conversation
+  const [isGeneratingName, setIsGeneratingName] = useState(false);
+  
+  const generateRoomName = () => {
+    if (isGeneratingName) return;
+    setIsGeneratingName(true);
+    
+    authFetch(process.env.REACT_APP_ENDPOINT + "/generate-room-name/" + room_id, {
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success && data.name) {
+          setRoom(prevRoom => ({ ...prevRoom, name: data.name }));
+          window.dispatchEvent(new CustomEvent('roomRenamed', { 
+            detail: { roomId: room_id, name: data.name } 
+          }));
+        } else if (data.error) {
+          console.warn('Could not generate name:', data.error);
+        }
+      })
+      .catch((error) => {
+        console.error("Error generating room name:", error);
+      })
+      .finally(() => setIsGeneratingName(false));
+  };
+
   return (
     <div className="room-page">
       <div className="room-header-bar">
         <div className="room-info">
-          <h3 id="roomName">{room != null ? room.name : "Loading..."}</h3>
+          <h3 id="roomName">{room != null ? (room.name || "Untitled Chat") : "Loading..."}</h3>
           {room && (
             <span className="room-meta">
               {Object.keys(room.users).length} members
@@ -383,6 +423,14 @@ const Room = function () {
           )}
         </div>
         <div className="room-actions">
+          <button 
+            className="action-btn" 
+            onClick={generateRoomName} 
+            title="Generate Name from Conversation"
+            disabled={isGeneratingName}
+          >
+            <i className={`fas fa-magic ${isGeneratingName ? 'fa-spin' : ''}`}></i>
+          </button>
           <button className="action-btn" onClick={toggleSharePopup} title="Invite User">
             <i className="fas fa-user-plus"></i>
           </button>

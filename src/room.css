@@ -296,6 +296,20 @@ body.light-mode .mention-item.mention-ai.mention-selected {
   border-color: var(--primary-color);
 }
 
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.action-btn .fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 
 #roomHeader .button-group-inline {

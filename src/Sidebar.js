@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import './home.css';
 import './sidebar.css';
@@ -10,21 +10,56 @@ function Sidebar({ isOpen, onClose }) {
     const [rooms, setRooms] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const fetchRooms = useCallback(() => {
+        setIsLoading(true);
+        const userId = localStorage.getItem('userId');
+        authFetch(process.env.REACT_APP_ENDPOINT + '/rooms/user/' + userId)
+            .then(async (response) => {
+                if (!response.ok) {
+                    const text = await response.text().catch(() => '');
+                    throw new Error(text || `Request failed: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                setRooms(data);
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            })
+            .finally(() => setIsLoading(false));
+    }, []);
+
     useEffect(() => {
         fetchRooms();
-    }, []);
+    }, [fetchRooms]);
 
     // Refresh rooms list if we navigate to root (optional, but good for sync)
     useEffect(() => {
         if (location.pathname === '/') {
             fetchRooms();
         }
-    }, [location.pathname]);
+    }, [location.pathname, fetchRooms]);
+
+    // Listen for room rename events
+    useEffect(() => {
+        const handleRoomRenamed = (event) => {
+            const { roomId, name } = event.detail;
+            setRooms(prevRooms => 
+                prevRooms.map(room => 
+                    room.id === roomId ? { ...room, name } : room
+                )
+            );
+        };
+        
+        window.addEventListener('roomRenamed', handleRoomRenamed);
+        return () => window.removeEventListener('roomRenamed', handleRoomRenamed);
+    }, []);
 
     const createInstantRoom = () => {
         const newRoom = {
             creatorId: localStorage.getItem('userId'),
-            name: 'New Chat',
+            name: '',
             description: '',
             users: []
         };
@@ -48,26 +83,6 @@ function Sidebar({ isOpen, onClose }) {
             .catch(error => {
                 console.error('There was a problem creating the room:', error);
             });
-    };
-
-    const fetchRooms = () => {
-        setIsLoading(true);
-        const userId = localStorage.getItem('userId');
-        authFetch(process.env.REACT_APP_ENDPOINT + '/rooms/user/' + userId)
-            .then(async (response) => {
-                if (!response.ok) {
-                    const text = await response.text().catch(() => '');
-                    throw new Error(text || `Request failed: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                setRooms(data);
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            })
-            .finally(() => setIsLoading(false));
     };
 
     const deleteRoom = (e, roomId) => {
