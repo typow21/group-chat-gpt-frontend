@@ -725,7 +725,7 @@ const Room = function () {
                 >
                   {renderMessageContent(message.content)}
                   <span className="message-sender">
-                    {isChatGPT ? '✨ ChatGPT' : (isOwnMessage ? 'You' : `@${senderUsername}`)}
+                    {isChatGPT ? 'ChatGPT' : (isOwnMessage ? 'You' : `@${senderUsername}`)}
                   </span>
                 </div>
               );
