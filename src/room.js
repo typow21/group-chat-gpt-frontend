@@ -34,6 +34,18 @@ const ROOM_NOTIFICATION_SUB = function (room_id) {
 `;
 };
 
+const TYPING_SUB = function (room_id, user_id) {
+  return gql`
+    subscription Typing {
+      typing(roomId: "${room_id}", userId: "${user_id}") {
+        userId
+        username
+        isTyping
+      }
+    }
+  `;
+};
+
 const Room = function () {
   checkAuth();
   let { room_id } = useParams();
@@ -52,7 +64,12 @@ const Room = function () {
   const [mentionDebounceId, setMentionDebounceId] = useState(null);
   // Room name generation state
   const [isGeneratingName, setIsGeneratingName] = useState(false);
+  // Typing indicator state
+  const [typingUsers, setTypingUsers] = useState({});
+  const typingTimeoutRef = useRef(null);
+  const lastTypingStatusRef = useRef(false);
   let userId = localStorage.getItem("userId");
+  const username = localStorage.getItem("user") || userId;
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -119,6 +136,59 @@ const Room = function () {
     },
   });
 
+  // Typing indicator subscription
+  useSubscription(TYPING_SUB(room_id, userId), {
+    onSubscriptionData: (subscriptionResult) => {
+      const typingData = subscriptionResult?.subscriptionData?.data?.typing;
+      if (typingData) {
+        const { userId: typingUserId, username: typingUsername, isTyping } = typingData;
+        setTypingUsers(prev => {
+          const updated = { ...prev };
+          if (isTyping) {
+            updated[typingUserId] = { username: typingUsername, timestamp: Date.now() };
+          } else {
+            delete updated[typingUserId];
+          }
+          return updated;
+        });
+      }
+    },
+  });
+
+  // Clear stale typing indicators after 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTypingUsers(prev => {
+        const now = Date.now();
+        const updated = {};
+        for (const [uid, data] of Object.entries(prev)) {
+          if (now - data.timestamp < 3000) {
+            updated[uid] = data;
+          }
+        }
+        return updated;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Function to emit typing status
+  const emitTypingStatus = (isTyping) => {
+    if (lastTypingStatusRef.current === isTyping) return;
+    lastTypingStatusRef.current = isTyping;
+    
+    authFetch(process.env.REACT_APP_ENDPOINT + "/typing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        roomId: room_id,
+        userId: userId,
+        username: username,
+        isTyping: isTyping
+      }),
+    }).catch(err => console.warn("Failed to emit typing status:", err));
+  };
+
   if (loading_ws) return <div className="loading-state">Connecting to chat...</div>;
   if (error_ws) return <div className="error-state">Error: {error_ws.message}</div>;
 
@@ -148,6 +218,13 @@ const Room = function () {
     if (sendMessageText === "") {
       return;
     }
+    
+    // Stop typing indicator when sending a message
+    emitTypingStatus(false);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
     // Send exactly what the user typed; no automatic mentions
     let contentToSend = sendMessageText;
     // Parse unique @mentions from the content
@@ -338,6 +415,21 @@ const Room = function () {
   const onMessageInputChange = (e) => {
     const val = e.target.value;
     setSendMessageText(val);
+    
+    // Emit typing status with debounce
+    if (val.trim()) {
+      emitTypingStatus(true);
+      // Clear previous timeout and set new one to stop typing after 2 seconds of inactivity
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      typingTimeoutRef.current = setTimeout(() => {
+        emitTypingStatus(false);
+      }, 2000);
+    } else {
+      emitTypingStatus(false);
+    }
+    
     // Caret-aware detection: use current cursor to find mention token
     const el = inputRef.current;
     const caret = el ? el.selectionStart : val.length;
@@ -520,6 +612,29 @@ const Room = function () {
             })}
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Typing Indicator */}
+          {Object.keys(typingUsers).length > 0 && (
+            <div className="typing-indicator">
+              <div className="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <span className="typing-text">
+                {(() => {
+                  const names = Object.values(typingUsers).map(u => u.username);
+                  if (names.length === 1) {
+                    return `${names[0]} is typing...`;
+                  } else if (names.length === 2) {
+                    return `${names[0]} and ${names[1]} are typing...`;
+                  } else {
+                    return `${names.slice(0, 2).join(', ')} and ${names.length - 2} more are typing...`;
+                  }
+                })()}
+              </span>
+            </div>
+          )}
 
           <div className="fade-overlay"></div>
 
