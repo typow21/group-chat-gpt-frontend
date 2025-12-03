@@ -41,6 +41,12 @@ function Profile() {
     roomCount: 0,
     friendCount: 0
   });
+  const [tokenUsage, setTokenUsage] = useState({
+    used_tokens: 0,
+    token_limit: 100000,
+    percentage_used: 0,
+    remaining_tokens: 100000
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -82,6 +88,17 @@ function Profile() {
           const friendCount = data.user_context?.friends?.length || 0;
           setStats({ roomCount, friendCount });
           setError(null);
+          
+          // Fetch token usage
+          try {
+            const tokenResponse = await authFetch(`${process.env.REACT_APP_ENDPOINT}/profile/${userId}/token-usage`);
+            if (tokenResponse.ok) {
+              const tokenData = await tokenResponse.json();
+              setTokenUsage(tokenData);
+            }
+          } catch (tokenError) {
+            console.error('Error fetching token usage:', tokenError);
+          }
         } else {
           const errorText = await response.text();
           console.error('Profile fetch failed:', response.status, errorText);
@@ -216,6 +233,40 @@ function Profile() {
           <div className="stat-card" onClick={() => navigate('/friends')}>
             <span className="stat-value">{stats.friendCount}</span>
             <span className="stat-label">Friends</span>
+          </div>
+        </div>
+
+        {/* Token Usage */}
+        <div className="profile-section token-usage-section">
+          <h2>🤖 AI Token Usage</h2>
+          <div className="token-usage-container">
+            <div className="token-progress-bar">
+              <div 
+                className="token-progress-fill" 
+                style={{ 
+                  width: `${Math.min(tokenUsage.percentage_used, 100)}%`,
+                  backgroundColor: tokenUsage.percentage_used > 80 ? '#ef4444' : 
+                                   tokenUsage.percentage_used > 50 ? '#f59e0b' : '#22c55e'
+                }}
+              ></div>
+            </div>
+            <div className="token-stats">
+              <div className="token-stat">
+                <span className="token-stat-value">{tokenUsage.used_tokens.toLocaleString()}</span>
+                <span className="token-stat-label">Used</span>
+              </div>
+              <div className="token-stat">
+                <span className="token-stat-value">{tokenUsage.percentage_used}%</span>
+                <span className="token-stat-label">of Limit</span>
+              </div>
+              <div className="token-stat">
+                <span className="token-stat-value">{tokenUsage.remaining_tokens.toLocaleString()}</span>
+                <span className="token-stat-label">Remaining</span>
+              </div>
+            </div>
+            <p className="token-limit-info">
+              Monthly limit: {tokenUsage.token_limit.toLocaleString()} tokens
+            </p>
           </div>
         </div>
 
