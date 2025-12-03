@@ -153,21 +153,36 @@ function Notifications({ userId }) {
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'friend_request':
-                return '👥';
+                return '👤';
             case 'friend_accepted':
-                return '✅';
+                return '🤝';
             case 'room_invite':
                 return '💬';
             case 'message_mention':
-                return '@';
+                return '📣';
             default:
                 return '🔔';
         }
     };
 
+    const formatTime = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return date.toLocaleDateString();
+    };
+
     return (
         <div className="notifications-container">
-            <button className="notification-bell" onClick={toggleDropdown}>
+            <button className="notification-bell" onClick={toggleDropdown} aria-label="Notifications">
                 🔔
                 {unreadCount > 0 && (
                     <span className="notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
@@ -178,13 +193,14 @@ function Notifications({ userId }) {
                 <div className="notifications-dropdown">
                     <div className="notifications-header">
                         <h3>Notifications</h3>
-                        <button onClick={toggleDropdown} className="close-btn">×</button>
+                        <button onClick={toggleDropdown} className="close-btn" aria-label="Close">×</button>
                     </div>
 
                     <div className="notifications-list">
                         {notifications.length === 0 ? (
                             <div className="empty-notifications">
-                                <p>No notifications</p>
+                                <div className="empty-notifications-icon">🔔</div>
+                                <p>You're all caught up!</p>
                             </div>
                         ) : (
                             notifications.map(notif => (
@@ -196,40 +212,37 @@ function Notifications({ userId }) {
                                     <div className="notification-content">
                                         <h4>{notif.title}</h4>
                                         <p>{notif.message}</p>
-                                        {/* Link to room for message mentions and room invites */}
                                         {(notif.type === 'message_mention' || notif.type === 'room_invite') && notif.metadata?.room_id && (
                                             <button
                                                 onClick={() => goToRoom(notif)}
                                                 className="go-to-room-btn"
                                             >
-                                                Go to chat →
+                                                View chat →
                                             </button>
                                         )}
                                         <span className="notification-time">
-                                            {new Date(notif.created_at).toLocaleString()}
+                                            {formatTime(notif.created_at)}
                                         </span>
                                     </div>
                                     <div className="notification-actions">
-                                        {/* Friend request: show accept/deny buttons */}
                                         {notif.type === 'friend_request' && !notif.read && (
                                             <>
                                                 <button
                                                     onClick={() => acceptFriendRequest(notif)}
                                                     className="accept-btn"
-                                                    title="Accept friend request"
+                                                    title="Accept"
                                                 >
                                                     ✓
                                                 </button>
                                                 <button
                                                     onClick={() => denyFriendRequest(notif)}
                                                     className="deny-btn"
-                                                    title="Deny friend request"
+                                                    title="Decline"
                                                 >
                                                     ✕
                                                 </button>
                                             </>
                                         )}
-                                        {/* Other notifications: show mark as read */}
                                         {notif.type !== 'friend_request' && !notif.read && (
                                             <button
                                                 onClick={() => markAsRead(notif.id)}
@@ -242,7 +255,7 @@ function Notifications({ userId }) {
                                         <button
                                             onClick={() => deleteNotification(notif.id)}
                                             className="delete-btn"
-                                            title="Delete"
+                                            title="Dismiss"
                                         >
                                             ×
                                         </button>
