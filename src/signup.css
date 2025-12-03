@@ -1,9 +1,12 @@
 .signup-page {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
     padding: 2rem 1rem;
+    overflow-y: auto;
+    height: 100vh;
+    box-sizing: border-box;
 }
 
 .signup-form-container {
