@@ -8,26 +8,45 @@
     height: 60px;
     box-sizing: border-box;
     z-index: 50;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .navbar {
-        flex-direction: column;
-        height: auto;
+        flex-direction: row;
+        height: 60px;
         padding: 0.5rem 1rem;
     }
     .navbar-links {
-        flex-direction: column;
+        flex-direction: row;
         gap: 0.5rem;
-        width: 100%;
-        align-items: flex-start;
+        align-items: center;
     }
 }
+
 @media (max-width: 480px) {
     .navbar {
         padding: 0.25rem 0.5rem;
         font-size: 0.95rem;
     }
-}
+    .navbar-links {
+        gap: 0.25rem;
+    }
+    .navbar-brand {
+        gap: 0.5rem;
+    }
+    .navbar-brand a span {
+        display: none;
+    }
+    .theme-toggle {
+        padding: 0.35rem;
+        font-size: 1.1rem;
+    }
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
 }
 
 .navbar-brand {
