@@ -46,6 +46,7 @@ export async function importKey(base64Key) {
 
 /**
  * Get or create encryption key for a room
+ * First checks localStorage, then server, finally generates new key
  */
 export async function getRoomKey(roomId) {
     const storageKey = `room_key_${roomId}`;
@@ -55,15 +56,96 @@ export async function getRoomKey(roomId) {
         try {
             return await importKey(storedKey);
         } catch (e) {
-            console.warn('Failed to import stored key, generating new one');
+            console.warn('Failed to import stored key, will try server or generate new one');
         }
+    }
+    
+    // Try to fetch existing key from server (another user may have created it)
+    try {
+        const serverKey = await fetchRoomKeyFromServer(roomId);
+        if (serverKey) {
+            localStorage.setItem(storageKey, serverKey);
+            return await importKey(serverKey);
+        }
+    } catch (e) {
+        console.warn('Failed to fetch room key from server:', e);
     }
     
     // Generate new key for this room
     const newKey = await generateRoomKey();
     const exported = await exportKey(newKey);
     localStorage.setItem(storageKey, exported);
+    
+    // Share the new key with the server so other users can fetch it
+    uploadRoomKeyToServer(roomId, exported);
+    
     return newKey;
+}
+
+/**
+ * Fetch a room's encryption key from the server
+ */
+async function fetchRoomKeyFromServer(roomId) {
+    // Get token the same way as authFetch
+    let token;
+    try {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            token = localStorage.getItem('token');
+        } else {
+            const parsed = JSON.parse(user);
+            token = parsed?.token || localStorage.getItem('token');
+        }
+    } catch (_e) {
+        token = localStorage.getItem('token');
+    }
+    
+    const response = await fetch(`${process.env.REACT_APP_ENDPOINT}/room-key/${roomId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    
+    if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.key) {
+            return data.key;
+        }
+    }
+    return null;
+}
+
+/**
+ * Upload a room's encryption key to the server (fire and forget)
+ */
+function uploadRoomKeyToServer(roomId, base64Key) {
+    // Get token the same way as authFetch
+    let token;
+    try {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            token = localStorage.getItem('token');
+        } else {
+            const parsed = JSON.parse(user);
+            token = parsed?.token || localStorage.getItem('token');
+        }
+    } catch (_e) {
+        token = localStorage.getItem('token');
+    }
+    
+    fetch(`${process.env.REACT_APP_ENDPOINT}/room-key`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            roomId: roomId,
+            key: base64Key
+        })
+    }).catch(err => console.warn('Failed to upload room key to server:', err));
 }
 
 /**
