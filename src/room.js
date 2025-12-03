@@ -208,6 +208,14 @@ const Room = function () {
     }
   };
 
+  const handleKeyDown = (event) => {
+    // Tab key autofill: if mention popup is showing, insert the first suggestion
+    if (event.key === "Tab" && showMentionPopup && mentionSuggestions.length > 0) {
+      event.preventDefault();
+      insertMention(mentionSuggestions[0]);
+    }
+  };
+
   const toggleSharePopup = () => {
     setShowSharePopup(!showSharePopup);
   };
@@ -243,11 +251,22 @@ const Room = function () {
       setMentionSuggestions([]);
       return;
     }
+    // Get current user's username to exclude from suggestions
+    const currentUsername = room.users[userId]?.username?.toLowerCase();
+    
+    // Get room users excluding current user
     const users = Object.values(room.users)
       .map(u => u.username)
-      .filter(Boolean);
+      .filter(name => name && name.toLowerCase() !== currentUsername);
+    
+    // Always include chatgpt as an option
+    const allSuggestions = ['chatgpt', ...users];
+    
     const q = query.toLowerCase();
-    const filtered = users.filter(name => name.toLowerCase().includes(q)).slice(0, 8);
+    const filtered = allSuggestions
+      .filter(name => name.toLowerCase().includes(q))
+      .filter((name, idx, arr) => arr.indexOf(name) === idx) // dedupe
+      .slice(0, 8);
     setMentionSuggestions(filtered);
   };
 
@@ -411,6 +430,7 @@ const Room = function () {
                 value={sendMessageText}
                 onChange={onMessageInputChange}
                 onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 autoComplete="off"
                 ref={inputRef}
               />
