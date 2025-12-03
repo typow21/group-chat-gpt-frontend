@@ -50,17 +50,31 @@ function Profile() {
         return;
       }
       
+      // Get localStorage data for fallback/merge
+      let localUser = {};
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          localUser = JSON.parse(storedUser);
+        } catch (e) {
+          console.error('Error parsing stored user:', e);
+        }
+      }
+      
       try {
         // Get profile from backend
         const response = await authFetch(`${process.env.REACT_APP_ENDPOINT}/profile/${userId}`);
         if (response.ok) {
           const data = await response.json();
+          console.log('Profile data received:', data);
           setProfile(data);
+          
+          // Merge API data with localStorage - use API data if available, else localStorage
           setFormData({
-            firstName: data.contact?.first_name || '',
-            lastName: data.contact?.last_name || '',
-            email: data.real_contact?.email || '',
-            phoneNumber: data.real_contact?.phone_number || ''
+            firstName: data.contact?.first_name || localUser.first_name || '',
+            lastName: data.contact?.last_name || localUser.last_name || '',
+            email: data.real_contact?.email || localUser.email || '',
+            phoneNumber: data.real_contact?.phone_number || localUser.phone_number || ''
           });
           
           // Get stats
@@ -73,42 +87,36 @@ function Profile() {
           console.error('Profile fetch failed:', response.status, errorText);
           setError('Failed to load profile. Please try again.');
           // Fallback to localStorage
-          loadFromLocalStorage();
+          loadFromLocalStorage(localUser);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
         setError('Could not connect to server. Showing cached data.');
         // Fallback to localStorage
-        loadFromLocalStorage();
+        loadFromLocalStorage(localUser);
       } finally {
         setLoading(false);
       }
     };
     
-    const loadFromLocalStorage = () => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          setFormData({
-            firstName: user.first_name || '',
-            lastName: user.last_name || '',
-            email: user.email || '',
-            phoneNumber: user.phone_number || ''
-          });
-          // Create a minimal profile from localStorage
-          setProfile({
-            contact: {
-              first_name: user.first_name || '',
-              last_name: user.last_name || '',
-              username: user.username || userId,
-              id: user.id || userId
-            },
-            auth_info: { username: user.username || userId }
-          });
-        } catch (e) {
-          console.error('Error parsing stored user:', e);
-        }
+    const loadFromLocalStorage = (user) => {
+      if (user && Object.keys(user).length > 0) {
+        setFormData({
+          firstName: user.first_name || '',
+          lastName: user.last_name || '',
+          email: user.email || '',
+          phoneNumber: user.phone_number || ''
+        });
+        // Create a minimal profile from localStorage
+        setProfile({
+          contact: {
+            first_name: user.first_name || '',
+            last_name: user.last_name || '',
+            username: user.username || userId,
+            id: user.id || userId
+          },
+          auth_info: { username: user.username || userId }
+        });
       }
     };
 

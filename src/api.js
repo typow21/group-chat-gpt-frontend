@@ -13,15 +13,6 @@ export async function authFetch(url, options = {}) {
   const isAuthEndpoint = /\/(login|signup)\b/.test(url);
   const token = getToken();
 
-  // Debug: log token info
-  console.log('[authFetch] Debug:', { 
-    url, 
-    hasToken: !!token, 
-    tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
-    userInStorage: localStorage.getItem('user'),
-    tokenInStorage: localStorage.getItem('token')
-  });
-
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {}),
