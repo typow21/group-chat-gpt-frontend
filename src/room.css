@@ -27,34 +27,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .room-header-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0.5rem 1rem;
-  }
-  .room-actions {
-    margin-top: 0.5rem;
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .room-page {
-    padding: 0.5rem;
-  }
-}
-@media (max-width: 480px) {
-  .room-header-bar {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.9rem;
-  }
-  .room-info h3 {
-    font-size: 1rem;
-  }
-  .room-meta {
-    font-size: 0.7rem;
-  }
-}
 }
 
 .room-header-bar {
@@ -757,6 +729,27 @@ body.light-mode .fade-overlay {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .room-header-bar {
+    padding: 0.5rem 1rem;
+  }
+
+  .room-info h3 {
+    font-size: 1rem;
+  }
+
+  .room-meta {
+    font-size: 0.75rem;
+  }
+
+  .room-actions {
+    gap: 0.35rem;
+  }
+
+  .action-btn {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
   .room-container {
     height: calc(100vh - 60px);
     margin-top: 60px;
@@ -829,6 +822,23 @@ body.light-mode .fade-overlay {
 }
 
 @media (max-width: 480px) {
+  .room-header-bar {
+    padding: 0.35rem 0.75rem;
+  }
+
+  .room-info h3 {
+    font-size: 0.95rem;
+  }
+
+  .room-meta {
+    font-size: 0.7rem;
+  }
+
+  .action-btn {
+    padding: 0.4rem;
+    font-size: 0.85rem;
+  }
+
   #roomHeader {
     gap: 0.5rem;
     padding: 0 0.75rem;
