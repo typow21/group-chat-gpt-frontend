@@ -45,8 +45,13 @@ const Room = function () {
   const [showUsersPopup, setShowUsersPopup] = useState(false);
   // Sticky Ask AI state placed with other state hooks to satisfy rules-of-hooks
   const [aiSticky, setAiSticky] = useState(false);
+  // Mention autocomplete state
+  const [showMentionPopup, setShowMentionPopup] = useState(false);
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [mentionDebounceId, setMentionDebounceId] = useState(null);
   let userId = localStorage.getItem("userId");
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
 
   useEffect(() => {
@@ -116,15 +121,7 @@ const Room = function () {
 
   // Bot detection helpers
 
-  const isTwoPartyWithBotRoom = (roomObj) => {
-    if (!roomObj || !roomObj.users) return false;
-    const userList = Object.values(roomObj.users);
-    if (userList.length !== 2) return false;
-    const botNames = Object.values(roomObj.users)
-      .map(u => (u.username || '').toLowerCase())
-      .filter(name => name.includes('chatgpt') || name.includes('bot'));
-    return botNames.length > 0;
-  };
+  // Removed bot room helper (unused)
 
   // Removed: isTwoPartyWithBot (no longer used)
 
@@ -150,6 +147,9 @@ const Room = function () {
     }
     // Send exactly what the user typed; no automatic mentions
     let contentToSend = sendMessageText;
+    // Parse unique @mentions from the content
+    const mentionMatches = Array.from(contentToSend.matchAll(/@([A-Za-z0-9._-]+)/g));
+    const mentionedUsers = Array.from(new Set(mentionMatches.map(m => m[1])));
 
     authFetch(process.env.REACT_APP_ENDPOINT + "/send-message", {
       method: "POST",
@@ -174,6 +174,15 @@ const Room = function () {
         } else {
           // Don't manually add message - WebSocket subscription will handle it
           setSendMessageText("");
+          // Notify mentioned users (best-effort; ignore failures)
+          const messageId = data?.message?.id || data?.id; // adapt if backend returns message
+          mentionedUsers.forEach((username) => {
+            authFetch(process.env.REACT_APP_ENDPOINT + "/notify-mention", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ roomId: room_id, mentionedUser: username, messageId }),
+            }).catch(() => {});
+          });
         }
       })
       .catch((error) => {
@@ -215,6 +224,66 @@ const Room = function () {
   // Override message input onChange to honor sticky
   const handleInputChange = (value) => {
     setShareRoomUsername(value);
+  };
+
+  // Mentions: detect '@' and show user suggestions from room
+  const updateMentionSuggestions = (query) => {
+    if (!room || !room.users) {
+      setMentionSuggestions([]);
+      return;
+    }
+    const users = Object.values(room.users)
+      .map(u => u.username)
+      .filter(Boolean);
+    const q = query.toLowerCase();
+    const filtered = users.filter(name => name.toLowerCase().includes(q)).slice(0, 8);
+    setMentionSuggestions(filtered);
+  };
+
+  const onMessageInputChange = (e) => {
+    const val = e.target.value;
+    setSendMessageText(val);
+    // Caret-aware detection: use current cursor to find mention token
+    const el = inputRef.current;
+    const caret = el ? el.selectionStart : val.length;
+    const textBeforeCaret = val.slice(0, caret);
+    const textAfterCaret = val.slice(caret);
+    // Only trigger suggestions if caret is within or right after an @token
+    // Find the last whitespace-separated token before caret
+    const tokenMatch = /(^|\s)(@[\w\-_.]*)$/.exec(textBeforeCaret);
+    if (tokenMatch && (textAfterCaret === '' || /^\s|[,.!?)]/.test(textAfterCaret[0]))) {
+      const token = tokenMatch[2] || '';
+      const q = token.replace(/^@/, '');
+      // Debounce suggestions to avoid rapid filtering while typing
+      if (mentionDebounceId) {
+        clearTimeout(mentionDebounceId);
+      }
+      const tid = setTimeout(() => updateMentionSuggestions(q), 150);
+      setMentionDebounceId(tid);
+      setShowMentionPopup(true);
+    } else {
+      setShowMentionPopup(false);
+    }
+  };
+
+  const insertMention = (username) => {
+    // Replace the @query around the caret with @username and a space
+    const el = inputRef.current;
+    const caret = el ? el.selectionStart : sendMessageText.length;
+    const before = sendMessageText.slice(0, caret);
+    const after = sendMessageText.slice(caret);
+    const replacedBefore = before.replace(/(^|\s)@([\w\-_.]*)$/,
+      (m, pre) => `${pre}@${username} `);
+    const newText = replacedBefore + after;
+    setSendMessageText(newText);
+    setShowMentionPopup(false);
+    
+    // Restore focus and move caret to end of inserted mention
+    if (inputRef.current) {
+      inputRef.current.focus();
+      const newCaret = replacedBefore.length;
+      inputRef.current.setSelectionRange(newCaret, newCaret);
+    }
   };
 
   return (
@@ -329,10 +398,24 @@ const Room = function () {
                 id="sendMsgInput"
                 placeholder="Type a message..."
                 value={sendMessageText}
-                onChange={(e) => setSendMessageText(e.target.value)}
+                onChange={onMessageInputChange}
                 onKeyPress={handleKeyPress}
                 autoComplete="off"
+                ref={inputRef}
               />
+              {showMentionPopup && mentionSuggestions.length > 0 && (
+                <div className="mention-popup">
+                  {mentionSuggestions.map((name) => (
+                    <div
+                      key={name}
+                      className="mention-item"
+                      onClick={() => insertMention(name)}
+                    >
+                      @{name}
+                    </div>
+                  ))}
+                </div>
+              )}
               <i onClick={sendMessage} id="send-btn" className="fas fa-paper-plane" title="Send"></i>
             </div>
           </div>

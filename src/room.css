@@ -1,3 +1,25 @@
+.mention-popup {
+  position: absolute;
+  z-index: 10;
+  background: var(--bg-primary, #1e1e1e);
+  border: 1px solid var(--border, #3a3a3a);
+  border-radius: 6px;
+  margin-top: 6px;
+  min-width: 180px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.mention-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--text-primary, #e6e6e6);
+}
+
+.mention-item:hover {
+  background: var(--bg-hover, #2a2a2a);
+}
 /* Room.css */
 .room-page {
   height: 100%;
