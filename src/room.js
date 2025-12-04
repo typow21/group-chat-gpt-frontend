@@ -177,6 +177,22 @@ const Room = function () {
         })
         .then(async (data) => {
           setRoom(data);
+
+          // Parse reactions if they are strings (fix for reactions not saving/loading)
+          if (data.messages) {
+            data.messages = data.messages.map(msg => {
+              if (typeof msg.reactions === 'string') {
+                try {
+                  msg.reactions = JSON.parse(msg.reactions);
+                } catch (e) {
+                  console.warn('Failed to parse reactions for message', msg.id, e);
+                  msg.reactions = {};
+                }
+              }
+              return msg;
+            });
+          }
+
           // Share room key with server for AI decryption
           if (encryptionEnabled) {
             shareRoomKeyWithServer(room_id, process.env.REACT_APP_ENDPOINT);
@@ -886,7 +902,7 @@ const Room = function () {
                             className="reaction-option add-custom-reaction"
                             onClick={() => {
                                 const emoji = prompt("Enter an emoji:");
-                                if (emoji) toggleReaction(message.id, emoji);
+                                if (emoji && emoji.trim()) toggleReaction(message.id, emoji.trim());
                             }}
                             title="Add custom emoji"
                           >
