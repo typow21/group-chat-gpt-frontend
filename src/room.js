@@ -754,13 +754,29 @@ const Room = function () {
   };
 
   const PRESET_MODELS = [
-    { value: "gpt-4o", label: "GPT-4o (Latest)" },
-    { value: "gpt-4o-mini", label: "GPT-4o Mini (Fast & Affordable)" },
-    { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
-    { value: "gpt-4", label: "GPT-4" },
-    { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
-    { value: "o1-preview", label: "o1-preview (Reasoning)" },
-    { value: "o1-mini", label: "o1-mini (Fast Reasoning)" },
+    // GPT-5 Series (Latest)
+    { value: "gpt-5", label: "GPT-5 (Latest Flagship)" },
+    { value: "gpt-5-mini", label: "GPT-5 Mini (Fast & Affordable)" },
+    { value: "gpt-5-nano", label: "GPT-5 Nano (Ultra-Fast)" },
+    { value: "gpt-5-codex", label: "GPT-5 Codex (Code Specialist)" },
+
+    // GPT-4.1 Series
+    { value: "gpt-4.1", label: "GPT-4.1" },
+    { value: "gpt-4.1-mini", label: "GPT-4.1 Mini (Fast)" },
+    { value: "gpt-4.1-nano", label: "GPT-4.1 Nano (Ultra-Fast)" },
+
+    // GPT-4o Series
+    { value: "gpt-4o", label: "GPT-4o" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+
+    // o-Series (Reasoning Models)
+    { value: "o4-mini", label: "o4-mini (Fast Reasoning)" },
+    { value: "o3", label: "o3 (Advanced Reasoning)" },
+    { value: "o3-mini", label: "o3-mini (Reasoning)" },
+    { value: "o1-mini", label: "o1-mini (Reasoning)" },
+
+    // Legacy
+    { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo (Legacy)" },
   ];
 
   const PREBUILT_BOTS = [
