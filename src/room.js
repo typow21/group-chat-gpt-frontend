@@ -11,6 +11,7 @@ import { checkAuth } from "./navbar";
 import UserInput from "./userInput";
 import { useParams } from "react-router-dom";
 import { authFetch } from "./api";
+import BotManager from "./BotManager";
 import { encryptMessage, decryptMessage, decryptMessages, isEncryptionSupported, shareRoomKeyWithServer } from "./crypto";
 
 const MESSAGE_SUB = function (room_id, user_id) {
@@ -71,16 +72,7 @@ const Room = function () {
   const [typingUsers, setTypingUsers] = useState({});
   // Encryption status
   const [encryptionEnabled] = useState(isEncryptionSupported());
-  // Bot management state
-  const [newBotName, setNewBotName] = useState('');
-  const [newBotInstructions, setNewBotInstructions] = useState('');
-  const [editingBot, setEditingBot] = useState(null);
-  const [botsFromOtherRooms, setBotsFromOtherRooms] = useState([]);
-  const [loadingOtherBots, setLoadingOtherBots] = useState(false);
-  // Model configuration state for bot editing
-  const [editBotModel, setEditBotModel] = useState('gpt-4o-mini');
-  const [editBotTemperature, setEditBotTemperature] = useState(0.7);
-  const [editBotMaxTokens, setEditBotMaxTokens] = useState(512);
+  // Bot management state moved to BotManager component
   const typingTimeoutRef = useRef(null);
   const lastTypingStatusRef = useRef(false);
   let userId = localStorage.getItem("userId");
@@ -254,14 +246,7 @@ const Room = function () {
     return () => clearInterval(interval);
   }, []);
 
-  // Initialize model configuration when editing a bot
-  useEffect(() => {
-    if (editingBot) {
-      setEditBotModel(editingBot.model || 'gpt-4o-mini');
-      setEditBotTemperature(editingBot.temperature ?? 0.7);
-      setEditBotMaxTokens(editingBot.max_tokens || editingBot.maxTokens || 512);
-    }
-  }, [editingBot]);
+
 
   // Function to emit typing status
   const emitTypingStatus = (isTyping) => {
@@ -638,169 +623,7 @@ const Room = function () {
       .finally(() => setIsGeneratingName(false));
   };
 
-  // Bot management functions
-  const addBot = () => {
-    if (!newBotName.trim()) return;
 
-    authFetch(process.env.REACT_APP_ENDPOINT + "/add-bot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        roomId: room_id,
-        botName: newBotName.trim(),
-        customInstructions: newBotInstructions.trim() || null
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setRoom(data.room);
-          setNewBotName('');
-          setNewBotInstructions('');
-        } else if (data.error) {
-          alert(data.error);
-        }
-      })
-      .catch((error) => console.error("Error adding bot:", error));
-  };
-
-  const removeBot = (botName) => {
-    if (!window.confirm(`Remove ${botName}?`)) return;
-
-    authFetch(process.env.REACT_APP_ENDPOINT + "/remove-bot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId: room_id, botName }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setRoom(data.room);
-        } else if (data.error) {
-          alert(data.error);
-        }
-      })
-      .catch((error) => console.error("Error removing bot:", error));
-  };
-
-  // Fetch bots from other rooms for copying
-  const fetchBotsFromOtherRooms = () => {
-    setLoadingOtherBots(true);
-    authFetch(process.env.REACT_APP_ENDPOINT + `/user/${userId}/all-bots`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          // Filter out bots that are already in the current room
-          const currentBotNames = (room?.assistants || []).map(b => b.name.toLowerCase());
-          const filtered = data.bots.filter(b =>
-            !currentBotNames.includes(b.name.toLowerCase()) &&
-            b.sourceRoomId !== room_id
-          );
-          setBotsFromOtherRooms(filtered);
-        }
-      })
-      .catch((error) => console.error("Error fetching bots from other rooms:", error))
-      .finally(() => setLoadingOtherBots(false));
-  };
-
-  // Copy a bot from another room to the current room
-  const copyBotToRoom = (bot) => {
-    authFetch(process.env.REACT_APP_ENDPOINT + "/add-bot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        roomId: room_id,
-        botName: bot.name,
-        customInstructions: bot.customInstructions || null
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setRoom(data.room);
-          // Remove from the "from other rooms" list
-          setBotsFromOtherRooms(prev => prev.filter(b => b.name.toLowerCase() !== bot.name.toLowerCase()));
-        } else if (data.error) {
-          alert(data.error);
-        }
-      })
-      .catch((error) => console.error("Error copying bot:", error));
-  };
-
-  const updateBot = (botName, newName, instructions, model, temperature, maxTokens) => {
-    authFetch(process.env.REACT_APP_ENDPOINT + "/update-bot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        roomId: room_id,
-        botName,
-        newName: newName?.trim() || null,
-        customInstructions: instructions?.trim() || null,
-        model: model || 'gpt-4o-mini',
-        temperature: temperature ?? 0.7,
-        max_tokens: maxTokens || 512
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setRoom(data.room);
-          setEditingBot(null);
-        } else if (data.error) {
-          alert(data.error);
-        }
-      })
-      .catch((error) => console.error("Error updating bot:", error));
-  };
-
-  const PRESET_MODELS = [
-    // GPT-5 Series (Latest)
-    { value: "gpt-5", label: "GPT-5 (Latest Flagship)" },
-    { value: "gpt-5-mini", label: "GPT-5 Mini (Fast & Affordable)" },
-    { value: "gpt-5-nano", label: "GPT-5 Nano (Ultra-Fast)" },
-    { value: "gpt-5-codex", label: "GPT-5 Codex (Code Specialist)" },
-
-    // GPT-4.1 Series
-    { value: "gpt-4.1", label: "GPT-4.1" },
-    { value: "gpt-4.1-mini", label: "GPT-4.1 Mini (Fast)" },
-    { value: "gpt-4.1-nano", label: "GPT-4.1 Nano (Ultra-Fast)" },
-
-    // GPT-4o Series
-    { value: "gpt-4o", label: "GPT-4o" },
-    { value: "gpt-4o-mini", label: "GPT-4o Mini" },
-
-    // o-Series (Reasoning Models)
-    { value: "o4-mini", label: "o4-mini (Fast Reasoning)" },
-    { value: "o3", label: "o3 (Advanced Reasoning)" },
-    { value: "o3-mini", label: "o3-mini (Reasoning)" },
-    { value: "o1-mini", label: "o1-mini (Reasoning)" },
-
-    // Legacy
-    { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo (Legacy)" },
-  ];
-
-  const PREBUILT_BOTS = [
-    {
-      name: "CodeHelper",
-      instructions: "You are CodeHelper, a friendly expert in Python, JavaScript, and web development. Always answer with clear code examples and explanations."
-    },
-    {
-      name: "SpanishTutor",
-      instructions: "You are SpanishTutor, a native Spanish teacher. Only reply in Spanish and help users learn the language."
-    },
-    {
-      name: "JokeBot",
-      instructions: "You are JokeBot, a witty comedian. Always reply with a joke or humorous comment, but keep it appropriate."
-    },
-    {
-      name: "Motivator",
-      instructions: "You are Motivator, a positive coach. Encourage users and provide motivational advice in every response."
-    },
-    {
-      name: "MarkdownMaster",
-      instructions: "You are MarkdownMaster. Always format your replies in markdown, using lists, code blocks, and headings where helpful."
-    }
-  ];
 
   return (
     <div className="room-page">
@@ -902,292 +725,16 @@ const Room = function () {
       )}
 
       {showBotsPopup && (
-        <div className="popup-background" onClick={() => setShowBotsPopup(false)}>
-          <div className="popup" onClick={e => e.stopPropagation()} style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
-            <h3>Manage Bots</h3>
-            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
-              <div className="users" style={{ marginBottom: '1rem' }}>
-                {room?.assistants?.map((bot) => (
-                  <div key={bot.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', marginBottom: '0.5rem' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontWeight: 'bold' }}>
-                        ✨ {bot.name}
-                      </p>
-                      {(bot.custom_instructions || bot.customInstructions) && (
-                        <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {(bot.custom_instructions || bot.customInstructions).substring(0, 60)}{(bot.custom_instructions || bot.customInstructions).length > 60 ? '...' : ''}
-                        </small>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                      <button
-                        onClick={() => setEditingBot(bot)}
-                        className="submit-button"
-                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => removeBot(bot.name)}
-                        className="close-button"
-                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
-                <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}>Add New Bot</h4>
-                <input
-                  type="text"
-                  placeholder="Bot name (e.g., CodeHelper)"
-                  value={newBotName}
-                  onChange={(e) => setNewBotName(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    marginBottom: '0.75rem',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid var(--glass-border)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.95rem',
-                    boxSizing: 'border-box'
-                  }}
-                />
-                <textarea
-                  placeholder="Custom personality/instructions (optional)"
-                  value={newBotInstructions}
-                  onChange={(e) => setNewBotInstructions(e.target.value)}
-                  rows="3"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    marginBottom: '0.75rem',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid var(--glass-border)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.9rem',
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
-                    boxSizing: 'border-box'
-                  }}
-                />
-                <button onClick={addBot} className="submit-button" style={{ width: '100%', marginBottom: '0.5rem' }}>
-                  Add Bot
-                </button>
-              </div>
-
-              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
-                <h4 style={{ marginBottom: '0.5rem', fontSize: '0.95rem' }}>Quick Add Prebuilt Bots</h4>
-                {PREBUILT_BOTS.map(bot => (
-                  <div key={bot.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontWeight: 'bold' }}>✨ {bot.name}</span>
-                      <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bot.instructions.substring(0, 50)}...</small>
-                    </div>
-                    <button
-                      className="submit-button"
-                      style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem', flexShrink: 0 }}
-                      onClick={() => {
-                        setNewBotName(bot.name);
-                        setNewBotInstructions(bot.instructions);
-                      }}
-                    >
-                      Use
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <h4 style={{ margin: 0, fontSize: '0.95rem' }}>Copy from Other Chats</h4>
-                  <button
-                    onClick={fetchBotsFromOtherRooms}
-                    className="submit-button"
-                    style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}
-                    disabled={loadingOtherBots}
-                  >
-                    {loadingOtherBots ? 'Loading...' : 'Load Bots'}
-                  </button>
-                </div>
-                {botsFromOtherRooms.length > 0 ? (
-                  botsFromOtherRooms.map(bot => (
-                    <div key={`${bot.sourceRoomId}-${bot.name}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontWeight: 'bold' }}>🔄 {bot.name}</span>
-                        <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          From: {bot.sourceRoomName}
-                        </small>
-                      </div>
-                      <button
-                        className="submit-button"
-                        style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem', flexShrink: 0 }}
-                        onClick={() => copyBotToRoom(bot)}
-                      >
-                        Copy
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <small style={{ color: 'var(--text-secondary)' }}>
-                    {loadingOtherBots ? 'Searching your chats...' : 'Click "Load Bots" to find bots from your other chats'}
-                  </small>
-                )}
-              </div>
-            </div>
-
-            <button onClick={() => setShowBotsPopup(false)} className="close-button full-width" style={{ marginTop: '1rem', flexShrink: 0 }}>
-              Close
-            </button>
-          </div>
-        </div>
+        <BotManager
+          roomId={room_id}
+          userId={userId}
+          currentBots={room?.assistants || []}
+          onRoomUpdate={(newRoom) => setRoom(newRoom)}
+          onClose={() => setShowBotsPopup(false)}
+        />
       )}
 
-      {editingBot && (
-        <div className="popup-background" onClick={() => setEditingBot(null)}>
-          <div className="popup" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
-            <h3>Edit Bot: {editingBot.name}</h3>
 
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Bot Name</label>
-            <input
-              type="text"
-              placeholder="Bot name"
-              defaultValue={editingBot.name}
-              id="edit-bot-name"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                marginBottom: '1rem',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '8px',
-                color: 'var(--text-primary)',
-                fontSize: '0.95rem',
-                boxSizing: 'border-box'
-              }}
-            />
-
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Custom Instructions</label>
-            <textarea
-              placeholder="Custom personality/instructions"
-              defaultValue={editingBot.custom_instructions || editingBot.customInstructions || ''}
-              id="edit-bot-instructions"
-              rows="4"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                marginBottom: '1rem',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '8px',
-                color: 'var(--text-primary)',
-                fontSize: '0.9rem',
-                resize: 'vertical',
-                fontFamily: 'inherit',
-                boxSizing: 'border-box'
-              }}
-            />
-
-            <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '1rem', marginBottom: '1rem' }}>
-              <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Model Configuration</h4>
-
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Model</label>
-              <select
-                value={editBotModel}
-                onChange={(e) => setEditBotModel(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  marginBottom: '1rem',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--glass-border)',
-                  borderRadius: '8px',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95rem',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer'
-                }}
-              >
-                {PRESET_MODELS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Temperature: {editBotTemperature}</label>
-              <input
-                type="range"
-                min="0"
-                max="2"
-                step="0.1"
-                value={editBotTemperature}
-                onChange={(e) => setEditBotTemperature(parseFloat(e.target.value))}
-                style={{
-                  width: '100%',
-                  marginBottom: '1rem'
-                }}
-              />
-              <small style={{ display: 'block', color: 'var(--text-secondary)', marginTop: '-0.75rem', marginBottom: '1rem', fontSize: '0.85rem' }}>
-                Controls randomness. Lower = more focused, Higher = more creative
-              </small>
-
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Max Tokens</label>
-              <input
-                type="number"
-                min="1"
-                max="4096"
-                step="1"
-                value={editBotMaxTokens}
-                onChange={(e) => setEditBotMaxTokens(parseInt(e.target.value, 10))}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  marginBottom: '0.5rem',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--glass-border)',
-                  borderRadius: '8px',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95rem',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <small style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.85rem' }}>
-                Maximum number of tokens in the response (1-4096)
-              </small>
-            </div>
-
-            <div className="button-group">
-              <button onClick={() => setEditingBot(null)} className="close-button">
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  const newName = document.getElementById('edit-bot-name').value;
-                  const instructions = document.getElementById('edit-bot-instructions').value;
-                  updateBot(
-                    editingBot.name,
-                    newName !== editingBot.name ? newName : null,
-                    instructions,
-                    editBotModel,
-                    editBotTemperature,
-                    editBotMaxTokens
-                  );
-                }}
-                className="submit-button"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="room-container">
         <div className="chat-container">
@@ -1196,6 +743,7 @@ const Room = function () {
               const bots = room?.assistants || [{ name: 'ChatGPT' }];
               const botNames = bots.map(b => b.name.toLowerCase());
               const isBotMessage = botNames.includes(message.sender.toLowerCase());
+              const bot = isBotMessage ? bots.find(b => b.name.toLowerCase() === message.sender.toLowerCase()) : null;
               const isOwnMessage = message.sender === userId;
               const senderUsername = room?.users?.[message.sender]?.username || message.sender;
               const isPending = message.pending;
@@ -1205,6 +753,7 @@ const Room = function () {
                   key={message.id}
                   className={`message ${isBotMessage ? 'chatgpt-message' : ''} ${isPending ? 'pending' : ''}`}
                   id={isOwnMessage ? "sent" : "recieved"}
+                  style={isBotMessage && bot?.color ? { '--bot-glow-color': bot.color } : {}}
                 >
                   {renderMessageContent(message.content)}
                   <span className="message-sender">
