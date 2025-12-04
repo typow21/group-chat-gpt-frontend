@@ -284,25 +284,42 @@
 }
 
 /* Color Picker */
-.color-picker {
+.color-picker-container {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  background: var(--background-light);
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
 }
 
-.color-option {
-  width: 32px;
-  height: 32px;
+.form-color-input {
+  -webkit-appearance: none;
+  border: none;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.2s;
+  background: none;
+  padding: 0;
+  overflow: hidden;
 }
 
-.color-option.selected {
-  border-color: var(--background-light);
-  box-shadow: 0 0 0 2px var(--primary-color);
-  transform: scale(1.1);
+.form-color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+  border: 2px solid var(--glass-border);
+}
+
+.color-value {
+  font-family: monospace;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 /* Settings Divider */

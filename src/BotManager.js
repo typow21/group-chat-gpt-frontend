@@ -51,16 +51,6 @@ const PREBUILT_BOTS = [
     }
 ];
 
-const BOT_COLORS = [
-    { name: 'Purple', value: '#8b5cf6' },
-    { name: 'Blue', value: '#3b82f6' },
-    { name: 'Green', value: '#10b981' },
-    { name: 'Red', value: '#ef4444' },
-    { name: 'Orange', value: '#f59e0b' },
-    { name: 'Pink', value: '#ec4899' },
-    { name: 'Cyan', value: '#06b6d4' },
-];
-
 const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose }) => {
     const [activeTab, setActiveTab] = useState('active'); // active, create, library
     const [editingBot, setEditingBot] = useState(null);
@@ -68,7 +58,7 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
     // Create Bot State
     const [newBotName, setNewBotName] = useState('');
     const [newBotInstructions, setNewBotInstructions] = useState('');
-    const [newBotColor, setNewBotColor] = useState(BOT_COLORS[0].value);
+    const [newBotColor, setNewBotColor] = useState('#8b5cf6');
     const [newBotModel, setNewBotModel] = useState('gpt-4o-mini');
     const [newBotTemperature, setNewBotTemperature] = useState(0.7);
     const [newBotMaxTokens, setNewBotMaxTokens] = useState(512);
@@ -85,7 +75,7 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
     const [editMaxTokens, setEditMaxTokens] = useState(512);
     const [editName, setEditName] = useState('');
     const [editInstructions, setEditInstructions] = useState('');
-    const [editColor, setEditColor] = useState(BOT_COLORS[0].value);
+    const [editColor, setEditColor] = useState('#8b5cf6');
 
     const fetchBotsFromOtherRooms = useCallback(async () => {
         setLoadingOtherBots(true);
@@ -124,6 +114,16 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
             setEditColor(editingBot.color || BOT_COLORS[0].value);
         }
     }, [editingBot]);
+    useEffect(() => {
+        if (editingBot) {
+            setEditName(editingBot.name);
+            setEditInstructions(editingBot.custom_instructions || editingBot.customInstructions || '');
+            setEditModel(editingBot.model || 'gpt-4o-mini');
+            setEditTemperature(editingBot.temperature ?? 0.7);
+            setEditMaxTokens(editingBot.max_tokens || editingBot.maxTokens || 512);
+            setEditColor(editingBot.color || '#8b5cf6');
+        }
+    }, [editingBot]);
 
     const addBot = async (name, instructions) => {
         if (!name.trim()) return;
@@ -148,22 +148,12 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                 onRoomUpdate(data.room);
                 setNewBotName('');
                 setNewBotInstructions('');
-                setNewBotColor(BOT_COLORS[0].value);
+                setNewBotColor('#8b5cf6');
                 setNewBotModel('gpt-4o-mini');
                 setNewBotTemperature(0.7);
                 setNewBotMaxTokens(512);
                 setActiveTab('active');
-            } else if (data.error) {
-                alert(data.error);
-            }
-        } catch (error) {
-            console.error("Error adding bot:", error);
-        } finally {
-            setIsAdding(false);
-        }
-    };
-
-    const removeBot = async (botName) => {
+            } else if (data.error) {) => {
         if (!window.confirm(`Remove ${botName}?`)) return;
 
         try {
@@ -225,6 +215,16 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                     botName: bot.name,
                     customInstructions: bot.customInstructions || null,
                     color: bot.color || BOT_COLORS[0].value
+    const copyBotToRoom = async (bot) => {
+        try {
+            const response = await authFetch(process.env.REACT_APP_ENDPOINT + "/add-bot", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    roomId,
+                    botName: bot.name,
+                    customInstructions: bot.customInstructions || null,
+                    color: bot.color || '#8b5cf6'
                 }),
             });
             const data = await response.json();
@@ -238,17 +238,7 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
         } catch (error) {
             console.error("Error copying bot:", error);
         }
-    };
-
-    if (editingBot) {
-        return (
-            <div className="bot-manager-overlay">
-                <div className="bot-manager-modal">
-                    <div className="bot-manager-header">
-                        <h3 className="bot-manager-title">
-                    <div className="bot-manager-content">
-                        <div className="form-group">
-                            <label className="form-label">Bot Name</label>
+    };                      <label className="form-label">Bot Name</label>
                             <input
                                 className="form-input"
                                 value={editName}
@@ -268,16 +258,14 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
 
                         <div className="form-group">
                             <label className="form-label">Bot Color</label>
-                            <div className="color-picker">
-                                {BOT_COLORS.map(c => (
-                                    <button
-                                        key={c.value}
-                                        onClick={() => setEditColor(c.value)}
-                                        className={`color-option ${editColor === c.value ? 'selected' : ''}`}
-                                        style={{ background: c.value }}
-                                        title={c.name}
-                                    />
-                                ))}
+                            <div className="color-picker-container">
+                                <input
+                                    type="color"
+                                    className="form-color-input"
+                                    value={editColor}
+                                    onChange={(e) => setEditColor(e.target.value)}
+                                />
+                                <span className="color-value">{editColor}</span>
                             </div>
                         </div>
 
@@ -442,20 +430,18 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                                 <textarea
                             <div className="form-group">
                                 <label className="form-label">Bot Color</label>
-                                <div className="color-picker">
-                                    {BOT_COLORS.map(c => (
-                                        <button
-                                            key={c.value}
-                                            onClick={() => setNewBotColor(c.value)}
-                                            className={`color-option ${newBotColor === c.value ? 'selected' : ''}`}
-                                            style={{ background: c.value }}
-                                            title={c.name}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
                             <div className="form-group">
+                                <label className="form-label">Bot Color</label>
+                                <div className="color-picker-container">
+                                    <input
+                                        type="color"
+                                        className="form-color-input"
+                                        value={newBotColor}
+                                        onChange={(e) => setNewBotColor(e.target.value)}
+                                    />
+                                    <span className="color-value">{newBotColor}</span>
+                                </div>
+                            </div>lassName="form-group">
                                 <label className="form-label">Model</label>
                                 <select
                                     className="form-select"
