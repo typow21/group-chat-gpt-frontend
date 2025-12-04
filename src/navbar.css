@@ -126,14 +126,21 @@
     top: 100%;
     right: 0;
     margin-top: 0.5rem;
-    background-color: var(--bg-secondary);
+    background-color: var(--background-light);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     padding: 0.5rem;
-    min-width: 200px;
-    box-shadow: var(--shadow-lg);
+    min-width: 220px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
     z-index: 1000;
     animation: slideDown 0.2s ease-out;
+}
+
+body.light-mode .user-dropdown {
+    background-color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .user-dropdown-header {

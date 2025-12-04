@@ -121,6 +121,9 @@ function Navbar({ onToggleSidebar }) {
                                 <p>{getDisplayName()}</p>
                                 <span>@{user?.username || userId}</span>
                             </div>
+                            <Link to="/profile" className="dropdown-item" onClick={() => setActiveDropdown(null)}>
+                                👤 Profile
+                            </Link>
                             <Link to="/friends" className="dropdown-item" onClick={() => setActiveDropdown(null)}>
                                 👥 Friends
                             </Link>
