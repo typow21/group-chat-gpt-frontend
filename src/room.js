@@ -75,6 +75,8 @@ const Room = function () {
   const [newBotName, setNewBotName] = useState('');
   const [newBotInstructions, setNewBotInstructions] = useState('');
   const [editingBot, setEditingBot] = useState(null);
+  const [botsFromOtherRooms, setBotsFromOtherRooms] = useState([]);
+  const [loadingOtherBots, setLoadingOtherBots] = useState(false);
   const typingTimeoutRef = useRef(null);
   const lastTypingStatusRef = useRef(false);
   let userId = localStorage.getItem("userId");
@@ -668,6 +670,50 @@ const Room = function () {
       .catch((error) => console.error("Error removing bot:", error));
   };
 
+  // Fetch bots from other rooms for copying
+  const fetchBotsFromOtherRooms = () => {
+    setLoadingOtherBots(true);
+    authFetch(process.env.REACT_APP_ENDPOINT + `/user/${userId}/all-bots`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // Filter out bots that are already in the current room
+          const currentBotNames = (room?.assistants || []).map(b => b.name.toLowerCase());
+          const filtered = data.bots.filter(b => 
+            !currentBotNames.includes(b.name.toLowerCase()) &&
+            b.sourceRoomId !== room_id
+          );
+          setBotsFromOtherRooms(filtered);
+        }
+      })
+      .catch((error) => console.error("Error fetching bots from other rooms:", error))
+      .finally(() => setLoadingOtherBots(false));
+  };
+
+  // Copy a bot from another room to the current room
+  const copyBotToRoom = (bot) => {
+    authFetch(process.env.REACT_APP_ENDPOINT + "/add-bot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        roomId: room_id,
+        botName: bot.name,
+        customInstructions: bot.customInstructions || null
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setRoom(data.room);
+          // Remove from the "from other rooms" list
+          setBotsFromOtherRooms(prev => prev.filter(b => b.name.toLowerCase() !== bot.name.toLowerCase()));
+        } else if (data.error) {
+          alert(data.error);
+        }
+      })
+      .catch((error) => console.error("Error copying bot:", error));
+  };
+
   const updateBot = (botName, newName, instructions) => {
     authFetch(process.env.REACT_APP_ENDPOINT + "/update-bot", {
       method: "POST",
@@ -911,6 +957,44 @@ const Room = function () {
                   </button>
                 </div>
               ))}
+            </div>
+
+            <div style={{ marginBottom: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <h4 style={{ margin: 0, fontSize: '0.95rem' }}>Copy from Other Chats</h4>
+                <button
+                  onClick={fetchBotsFromOtherRooms}
+                  className="submit-button"
+                  style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}
+                  disabled={loadingOtherBots}
+                >
+                  {loadingOtherBots ? 'Loading...' : 'Load Bots'}
+                </button>
+              </div>
+              {botsFromOtherRooms.length > 0 ? (
+                botsFromOtherRooms.map(bot => (
+                  <div key={`${bot.sourceRoomId}-${bot.name}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: 'bold' }}>🔄 {bot.name}</span>
+                      <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem' }}>
+                        From: {bot.sourceRoomName}
+                        {bot.customInstructions && ` • ${bot.customInstructions.substring(0, 40)}${bot.customInstructions.length > 40 ? '...' : ''}`}
+                      </small>
+                    </div>
+                    <button
+                      className="submit-button"
+                      style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}
+                      onClick={() => copyBotToRoom(bot)}
+                    >
+                      Copy
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <small style={{ color: 'var(--text-secondary)' }}>
+                  {loadingOtherBots ? 'Searching your chats...' : 'Click "Load Bots" to find bots from your other chats'}
+                </small>
+              )}
             </div>
 
             <button onClick={() => setShowBotsPopup(false)} className="close-button full-width">
