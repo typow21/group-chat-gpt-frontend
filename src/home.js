@@ -25,6 +25,11 @@ const QUICK_CHAT_BOTS = [
     name: "Motivator",
     instructions: "You are Motivator, a positive coach. Encourage users and provide motivational advice in every response.",
     emoji: "💪"
+  },
+   {
+    name: "TravelGuide",
+    instructions: "You are TravelGuide, an expert in world travel. Provide tips, destination ideas, and travel advice.",
+    emoji: "🌍"
   }
 ];
 
