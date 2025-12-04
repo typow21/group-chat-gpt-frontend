@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { authFetch } from './api';
 import './botManager.css';
 
@@ -84,11 +84,32 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
     const [editInstructions, setEditInstructions] = useState('');
     const [editColor, setEditColor] = useState(BOT_COLORS[0].value);
 
+    const fetchBotsFromOtherRooms = useCallback(async () => {
+        setLoadingOtherBots(true);
+        try {
+            const response = await authFetch(process.env.REACT_APP_ENDPOINT + `/user/${userId}/all-bots`);
+            const data = await response.json();
+            if (data.success) {
+                const currentBotNames = currentBots.map(b => b.name.toLowerCase());
+                const filtered = data.bots.filter(b =>
+                    !currentBotNames.includes(b.name.toLowerCase()) &&
+                    b.sourceRoomId !== roomId
+                );
+                setBotsFromOtherRooms(filtered);
+                setHasLoadedLibrary(true);
+            }
+        } catch (error) {
+            console.error("Error fetching bots:", error);
+        } finally {
+            setLoadingOtherBots(false);
+        }
+    }, [userId, currentBots, roomId]);
+
     useEffect(() => {
         if (activeTab === 'library' && !hasLoadedLibrary) {
             fetchBotsFromOtherRooms();
         }
-    }, [activeTab]);
+    }, [activeTab, hasLoadedLibrary, fetchBotsFromOtherRooms]);
 
     useEffect(() => {
         if (editingBot) {
@@ -183,26 +204,7 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
         }
     };
 
-    const fetchBotsFromOtherRooms = async () => {
-        setLoadingOtherBots(true);
-        try {
-            const response = await authFetch(process.env.REACT_APP_ENDPOINT + `/user/${userId}/all-bots`);
-            const data = await response.json();
-            if (data.success) {
-                const currentBotNames = currentBots.map(b => b.name.toLowerCase());
-                const filtered = data.bots.filter(b =>
-                    !currentBotNames.includes(b.name.toLowerCase()) &&
-                    b.sourceRoomId !== roomId
-                );
-                setBotsFromOtherRooms(filtered);
-                setHasLoadedLibrary(true);
-            }
-        } catch (error) {
-            console.error("Error fetching bots:", error);
-        } finally {
-            setLoadingOtherBots(false);
-        }
-    };
+
 
     const copyBotToRoom = async (bot) => {
         try {
