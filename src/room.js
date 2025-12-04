@@ -48,6 +48,23 @@ const TYPING_SUB = function (room_id, user_id) {
   `;
 };
 
+const REACTION_SUB = function (room_id) {
+  return gql`
+    subscription Reactions {
+      reactions(roomId: "${room_id}") {
+        messageId
+        emoji
+        userId
+        action
+        reactions
+      }
+    }
+  `;
+};
+
+// Common emoji reactions
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🎉'];
+
 const Room = function () {
   checkAuth();
   let { room_id } = useParams();
@@ -73,6 +90,8 @@ const Room = function () {
   const [typingUsers, setTypingUsers] = useState({});
   // Encryption status
   const [encryptionEnabled] = useState(isEncryptionSupported());
+  // Reaction picker state
+  const [showReactionPicker, setShowReactionPicker] = useState(null); // message id or null
   // Bot management state moved to BotManager component
   const typingTimeoutRef = useRef(null);
   const lastTypingStatusRef = useRef(false);
@@ -229,6 +248,37 @@ const Room = function () {
       }
     },
   });
+
+  // Reaction subscription
+  useSubscription(REACTION_SUB(room_id), {
+    onSubscriptionData: (subscriptionResult) => {
+      const reactionData = subscriptionResult?.subscriptionData?.data?.reactions;
+      if (reactionData) {
+        const { messageId, reactions: reactionsJson } = reactionData;
+        try {
+          const reactions = JSON.parse(reactionsJson);
+          setMessages(prevMessages =>
+            prevMessages.map(msg =>
+              msg.id === messageId ? { ...msg, reactions } : msg
+            )
+          );
+        } catch (e) {
+          console.warn('Failed to parse reaction update:', e);
+        }
+      }
+    },
+  });
+
+  // Close reaction picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showReactionPicker) {
+        setShowReactionPicker(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showReactionPicker]);
 
   // Clear stale typing indicators after 3 seconds
   useEffect(() => {
@@ -412,6 +462,33 @@ const Room = function () {
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
       });
+  };
+
+  const toggleReaction = async (messageId, emoji) => {
+    try {
+      const response = await authFetch(process.env.REACT_APP_ENDPOINT + "/toggle-reaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: room_id,
+          messageId: messageId,
+          userId: userId,
+          emoji: emoji,
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Optimistically update local state (subscription will sync)
+        setMessages(prevMessages =>
+          prevMessages.map(msg =>
+            msg.id === messageId ? { ...msg, reactions: data.reactions } : msg
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling reaction:", error);
+    }
+    setShowReactionPicker(null);
   };
 
   const handleKeyPress = (event) => {
@@ -761,6 +838,54 @@ const Room = function () {
                   <span className="message-sender">
                     {isBotMessage ? message.sender : (isOwnMessage ? 'You' : `@${senderUsername}`)}
                   </span>
+                  
+                  {/* Reactions display */}
+                  {message.reactions && Object.keys(message.reactions).length > 0 && (
+                    <div className="message-reactions">
+                      {Object.entries(message.reactions).map(([emoji, users]) => (
+                        <button
+                          key={emoji}
+                          className={`reaction-badge ${users.includes(userId) ? 'user-reacted' : ''}`}
+                          onClick={() => toggleReaction(message.id, emoji)}
+                          title={users.join(', ')}
+                        >
+                          <span className="reaction-emoji">{emoji}</span>
+                          <span className="reaction-count">{users.length}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Reaction button */}
+                  {!isPending && (
+                    <div className="message-actions">
+                      <button
+                        className="reaction-trigger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowReactionPicker(showReactionPicker === message.id ? null : message.id);
+                        }}
+                        title="Add reaction"
+                      >
+                        😊
+                      </button>
+                      
+                      {/* Reaction picker */}
+                      {showReactionPicker === message.id && (
+                        <div className="reaction-picker" onClick={(e) => e.stopPropagation()}>
+                          {REACTION_EMOJIS.map(emoji => (
+                            <button
+                              key={emoji}
+                              className="reaction-option"
+                              onClick={() => toggleReaction(message.id, emoji)}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

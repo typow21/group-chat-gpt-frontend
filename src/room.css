@@ -681,6 +681,161 @@ body.light-mode .markdown-table th {
   letter-spacing: 0.02em;
 }
 
+/* Message Reactions */
+.message-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.reaction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+}
+
+.reaction-badge:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.reaction-badge.user-reacted {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.reaction-emoji {
+  font-size: 0.9rem;
+}
+
+.reaction-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.reaction-badge.user-reacted .reaction-count {
+  color: var(--primary-color);
+}
+
+/* Message Actions (hover) */
+.message-actions {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.message:hover .message-actions {
+  opacity: 1;
+}
+
+.reaction-trigger {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--surface-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.reaction-trigger:hover {
+  transform: scale(1.1);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Reaction Picker */
+.reaction-picker {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--surface-color);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  animation: reactionPickerSlide 0.2s ease;
+}
+
+@keyframes reactionPickerSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.reaction-option {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.reaction-option:hover {
+  background: rgba(99, 102, 241, 0.2);
+  transform: scale(1.2);
+}
+
+/* Sent message reaction styling */
+#sent .reaction-badge {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+#sent .reaction-badge.user-reacted {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+#sent .reaction-count {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+#sent .reaction-badge.user-reacted .reaction-count {
+  color: white;
+}
+
+#sent .message-actions {
+  right: auto;
+  left: 8px;
+}
+
+#sent .reaction-picker {
+  right: auto;
+  left: 0;
+}
+
 /* Bot Message Styling */
 .chatgpt-message,
 .bot-message {
