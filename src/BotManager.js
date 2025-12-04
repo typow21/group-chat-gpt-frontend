@@ -69,6 +69,9 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
     const [newBotName, setNewBotName] = useState('');
     const [newBotInstructions, setNewBotInstructions] = useState('');
     const [newBotColor, setNewBotColor] = useState(BOT_COLORS[0].value);
+    const [newBotModel, setNewBotModel] = useState('gpt-4o-mini');
+    const [newBotTemperature, setNewBotTemperature] = useState(0.7);
+    const [newBotMaxTokens, setNewBotMaxTokens] = useState(512);
     const [isAdding, setIsAdding] = useState(false);
 
     // Library State
@@ -134,7 +137,10 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                     roomId,
                     botName: name.trim(),
                     customInstructions: instructions?.trim() || null,
-                    color: newBotColor
+                    color: newBotColor,
+                    model: newBotModel,
+                    temperature: newBotTemperature,
+                    max_tokens: newBotMaxTokens
                 }),
             });
             const data = await response.json();
@@ -143,6 +149,9 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                 setNewBotName('');
                 setNewBotInstructions('');
                 setNewBotColor(BOT_COLORS[0].value);
+                setNewBotModel('gpt-4o-mini');
+                setNewBotTemperature(0.7);
+                setNewBotMaxTokens(512);
                 setActiveTab('active');
             } else if (data.error) {
                 alert(data.error);
@@ -237,12 +246,6 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                 <div className="bot-manager-modal">
                     <div className="bot-manager-header">
                         <h3 className="bot-manager-title">
-                            <i className="fas fa-edit"></i> Edit {editingBot.name}
-                        </h3>
-                        <button className="bot-manager-close" onClick={() => setEditingBot(null)}>
-                            <i className="fas fa-times"></i>
-                        </button>
-                    </div>
                     <div className="bot-manager-content">
                         <div className="form-group">
                             <label className="form-label">Bot Name</label>
@@ -253,39 +256,35 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                                 placeholder="Bot Name"
                             />
                         </div>
-                        <textarea
-                            className="form-textarea"
-                            value={editInstructions}
-                            onChange={(e) => setEditInstructions(e.target.value)}
-                            placeholder="Custom instructions..."
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Bot Color</label>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            {BOT_COLORS.map(c => (
-                                <button
-                                    key={c.value}
-                                    onClick={() => setEditColor(c.value)}
-                                    style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        background: c.value,
-                                        border: editColor === c.value ? '2px solid white' : '2px solid transparent',
-                                        cursor: 'pointer',
-                                        boxShadow: editColor === c.value ? '0 0 0 2px #64b5f6' : 'none',
-                                        transition: 'all 0.2s'
-                                    }}
-                                    title={c.name}
-                                />
-                            ))}
+                        <div className="form-group">
+                            <label className="form-label">Instructions</label>
+                            <textarea
+                                className="form-textarea"
+                                value={editInstructions}
+                                onChange={(e) => setEditInstructions(e.target.value)}
+                                placeholder="Custom instructions..."
+                            />
                         </div>
-                    </div>
 
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '1.5rem 0', paddingTop: '1.5rem' }}>
-                        <h4 style={{ color: '#fff', marginBottom: '1rem' }}>Model Settings</h4>
+                        <div className="form-group">
+                            <label className="form-label">Bot Color</label>
+                            <div className="color-picker">
+                                {BOT_COLORS.map(c => (
+                                    <button
+                                        key={c.value}
+                                        onClick={() => setEditColor(c.value)}
+                                        className={`color-option ${editColor === c.value ? 'selected' : ''}`}
+                                        style={{ background: c.value }}
+                                        title={c.name}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="settings-divider">
+                            <h4>Model Settings</h4>
+                        </div>
+
                         <div className="form-group">
                             <label className="form-label">Model</label>
                             <select
@@ -298,36 +297,45 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                                 ))}
                             </select>
                         </div>
-                        <div className="form-group">
-                            <label className="form-label">Temperature: {editTemperature}</label>
-                            <input
-                                type="range"
-                                min="0"
-                                max="2"
-                                step="0.1"
-                                value={editTemperature}
-                                onChange={(e) => setEditTemperature(parseFloat(e.target.value))}
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Max Tokens</label>
-                            <input
-                                type="number"
-                                className="form-input"
-                                value={editMaxTokens}
-                                onChange={(e) => setEditMaxTokens(parseInt(e.target.value))}
-                            />
+
+                        <div className="form-row">
+                            <div className="form-group half">
+                                <label className="form-label">Temperature: {editTemperature}</label>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="2"
+                                    step="0.1"
+                                    value={editTemperature}
+                                    onChange={(e) => setEditTemperature(parseFloat(e.target.value))}
+                                    className="form-range"
+                                />
+                            </div>
+                            <div className="form-group half">
+                                <label className="form-label">Max Tokens</label>
+                                <input
+                                    type="number"
+                                    className="form-input"
+                                    value={editMaxTokens}
+                                    onChange={(e) => setEditMaxTokens(parseInt(e.target.value))}
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button className="btn-icon" onClick={() => setEditingBot(null)} style={{ justifyContent: 'center' }}>
+                    <div className="bot-manager-footer">
+                        <button className="btn-secondary" onClick={() => setEditingBot(null)}>
                             Cancel
                         </button>
                         <button className="btn-primary" onClick={updateBot}>
                             Save Changes
                         </button>
+                    </div>
+                </div>
+            </div>
+
+        );
+    }                   </button>
                     </div>
                 </div>
             </div>
@@ -432,35 +440,65 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                             <div className="form-group">
                                 <label className="form-label">Instructions</label>
                                 <textarea
-                                    className="form-textarea"
-                                    value={newBotInstructions}
-                                    onChange={(e) => setNewBotInstructions(e.target.value)}
-                                    placeholder="Describe how the bot should behave..."
-                                />
-                            </div>
                             <div className="form-group">
                                 <label className="form-label">Bot Color</label>
-                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <div className="color-picker">
                                     {BOT_COLORS.map(c => (
                                         <button
                                             key={c.value}
                                             onClick={() => setNewBotColor(c.value)}
-                                            style={{
-                                                width: '32px',
-                                                height: '32px',
-                                                borderRadius: '50%',
-                                                background: c.value,
-                                                border: newBotColor === c.value ? '2px solid white' : '2px solid transparent',
-                                                cursor: 'pointer',
-                                                boxShadow: newBotColor === c.value ? '0 0 0 2px #64b5f6' : 'none',
-                                                transition: 'all 0.2s'
-                                            }}
+                                            className={`color-option ${newBotColor === c.value ? 'selected' : ''}`}
+                                            style={{ background: c.value }}
                                             title={c.name}
                                         />
                                     ))}
                                 </div>
                             </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Model</label>
+                                <select
+                                    className="form-select"
+                                    value={newBotModel}
+                                    onChange={(e) => setNewBotModel(e.target.value)}
+                                >
+                                    {PRESET_MODELS.map(m => (
+                                        <option key={m.value} value={m.value}>{m.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label className="form-label">Temperature: {newBotTemperature}</label>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="2"
+                                        step="0.1"
+                                        value={newBotTemperature}
+                                        onChange={(e) => setNewBotTemperature(parseFloat(e.target.value))}
+                                        className="form-range"
+                                    />
+                                </div>
+                                <div className="form-group half">
+                                    <label className="form-label">Max Tokens</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={newBotMaxTokens}
+                                        onChange={(e) => setNewBotMaxTokens(parseInt(e.target.value))}
+                                    />
+                                </div>
+                            </div>
+
                             <button
+                                className="btn-primary"
+                                onClick={() => addBot(newBotName, newBotInstructions)}
+                                disabled={isAdding}
+                            >
+                                {isAdding ? 'Creating...' : 'Create Bot'}
+                            </button>
                                 className="btn-primary"
                                 onClick={() => addBot(newBotName, newBotInstructions)}
                                 disabled={isAdding}
