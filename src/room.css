@@ -781,6 +781,40 @@ body.light-mode .markdown-table th {
   max-width: 300px;
 }
 
+/* Custom reaction input inside picker */
+.custom-reaction-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.custom-reaction-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.custom-reaction-input {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  border-radius: 8px;
+  min-width: 84px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.custom-reaction-input::placeholder { color: var(--text-muted); }
+
+.custom-reaction-error {
+  color: #ffb3b3;
+  font-size: 0.75rem;
+  padding-left: 4px;
+}
+
 @keyframes reactionPickerSlide {
   from {
     opacity: 0;

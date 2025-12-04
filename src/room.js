@@ -93,6 +93,9 @@ const Room = function () {
   const [encryptionEnabled] = useState(isEncryptionSupported());
   // Reaction picker state
   const [showReactionPicker, setShowReactionPicker] = useState(null); // message id or null
+  // Custom reaction input state per message
+  const [customReactionInputs, setCustomReactionInputs] = useState({});
+  const [customReactionErrors, setCustomReactionErrors] = useState({});
   // Bot management state moved to BotManager component
   const typingTimeoutRef = useRef(null);
   const lastTypingStatusRef = useRef(false);
@@ -108,6 +111,26 @@ const Room = function () {
       // Not JSON, use as-is
       return stored;
     }
+  };
+
+  const addCustomReaction = (messageId) => {
+    const raw = (customReactionInputs[messageId] || '').trim();
+    if (!raw) {
+      setCustomReactionErrors(prev => ({ ...prev, [messageId]: 'Please enter an emoji.' }));
+      return;
+    }
+
+    // Basic emoji validation: at least one pictographic character
+    const containsEmoji = /\p{Extended_Pictographic}/u.test(raw);
+    if (!containsEmoji) {
+      setCustomReactionErrors(prev => ({ ...prev, [messageId]: 'Please enter a valid emoji.' }));
+      return;
+    }
+
+    // Use trimmed value (support emoji sequences)
+    toggleReaction(messageId, raw);
+    setCustomReactionInputs(prev => ({ ...prev, [messageId]: '' }));
+    setCustomReactionErrors(prev => ({ ...prev, [messageId]: '' }));
   };
   const username = getUsername();
   const messagesEndRef = useRef(null);
@@ -961,16 +984,33 @@ const Room = function () {
                               {emoji}
                             </button>
                           ))}
-                          <button
-                            className="reaction-option add-custom-reaction"
-                            onClick={() => {
-                                const emoji = prompt("Enter an emoji:");
-                                if (emoji && emoji.trim()) toggleReaction(message.id, emoji.trim());
-                            }}
-                            title="Add custom emoji"
-                          >
-                            ➕
-                          </button>
+                          <div className="custom-reaction-row">
+                            <form
+                              className="custom-reaction-form"
+                              onSubmit={(e) => { e.preventDefault(); addCustomReaction(message.id); }}
+                            >
+                              <input
+                                aria-label="Add custom reaction"
+                                className="custom-reaction-input"
+                                value={customReactionInputs[message.id] || ''}
+                                onChange={(e) => {
+                                  setCustomReactionErrors(prev => ({ ...prev, [message.id]: '' }));
+                                  setCustomReactionInputs(prev => ({ ...prev, [message.id]: e.target.value }));
+                                }}
+                                placeholder="Add emoji"
+                              />
+                              <button
+                                type="submit"
+                                className="reaction-option add-custom-reaction"
+                                title="Add custom emoji"
+                              >
+                                ➕
+                              </button>
+                            </form>
+                            {customReactionErrors[message.id] && (
+                              <div className="custom-reaction-error">{customReactionErrors[message.id]}</div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
