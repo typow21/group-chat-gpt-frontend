@@ -51,9 +51,10 @@ const PREBUILT_BOTS = [
     }
 ];
 
-const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose }) => {
+const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose, onNavigate }) => {
     const [activeTab, setActiveTab] = useState('active'); // active, create, library
     const [editingBot, setEditingBot] = useState(null);
+    const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
     // Create Bot State
     const [newBotName, setNewBotName] = useState('');
@@ -227,6 +228,51 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
             }
         } catch (error) {
             console.error("Error copying bot:", error);
+        }
+    };
+
+    // Start a new chat room with only the selected bot (no default ChatGPT)
+    const startChatWithBot = async (bot) => {
+        if (isCreatingRoom) return;
+        setIsCreatingRoom(true);
+        
+        try {
+            const newRoom = {
+                creatorId: userId,
+                name: `Chat with ${bot.name}`,
+                description: '',
+                users: [],
+                assistants: [{
+                    name: bot.name,
+                    custom_instructions: bot.customInstructions || bot.instructions || null,
+                    model: bot.model || null,
+                    temperature: bot.temperature || null,
+                    max_tokens: bot.max_tokens || bot.maxTokens || null,
+                    color: bot.color || null,
+                }]
+            };
+
+            const response = await authFetch(process.env.REACT_APP_ENDPOINT + '/create-room', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newRoom),
+            });
+
+            if (!response.ok) {
+                const text = await response.text().catch(() => '');
+                throw new Error(text || `Request failed: ${response.status}`);
+            }
+
+            const data = await response.json();
+            onClose();
+            if (onNavigate) {
+                onNavigate(`/room/${data.id}`);
+            }
+        } catch (error) {
+            console.error('Error starting chat with bot:', error);
+            alert('Failed to start chat with bot');
+        } finally {
+            setIsCreatingRoom(false);
         }
     };
 
@@ -507,13 +553,23 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                                                 <div className="bot-name">✨ {bot.name}</div>
                                             </div>
                                             <div className="bot-desc">{bot.instructions}</div>
-                                            <button className="btn-primary" onClick={() => {
-                                                setNewBotName(bot.name);
-                                                setNewBotInstructions(bot.instructions);
-                                                setActiveTab('create');
-                                            }}>
-                                                Use Template
-                                            </button>
+                                            <div className="bot-actions">
+                                                <button className="btn-primary" onClick={() => {
+                                                    setNewBotName(bot.name);
+                                                    setNewBotInstructions(bot.instructions);
+                                                    setActiveTab('create');
+                                                }}>
+                                                    Use Template
+                                                </button>
+                                                <button 
+                                                    className="btn-secondary" 
+                                                    onClick={() => startChatWithBot(bot)}
+                                                    disabled={isCreatingRoom}
+                                                    title="Start a new chat with only this bot"
+                                                >
+                                                    {isCreatingRoom ? '...' : '💬 Start Chat'}
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -533,9 +589,19 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                                                 <div className="bot-desc">
                                                     From: {bot.sourceRoomName}
                                                 </div>
-                                                <button className="btn-primary" onClick={() => copyBotToRoom(bot)}>
-                                                    Import
-                                                </button>
+                                                <div className="bot-actions">
+                                                    <button className="btn-primary" onClick={() => copyBotToRoom(bot)}>
+                                                        Import
+                                                    </button>
+                                                    <button 
+                                                        className="btn-secondary" 
+                                                        onClick={() => startChatWithBot(bot)}
+                                                        disabled={isCreatingRoom}
+                                                        title="Start a new chat with only this bot"
+                                                    >
+                                                        {isCreatingRoom ? '...' : '💬 Start Chat'}
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                         {botsFromOtherRooms.length === 0 && (

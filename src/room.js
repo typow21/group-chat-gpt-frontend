@@ -9,7 +9,7 @@ import "./navbar.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { checkAuth } from "./navbar";
 import UserInput from "./userInput";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { authFetch } from "./api";
 import BotManager from "./BotManager";
 import { encryptMessage, decryptMessage, decryptMessages, isEncryptionSupported, shareRoomKeyWithServer } from "./crypto";
@@ -51,6 +51,7 @@ const TYPING_SUB = function (room_id, user_id) {
 const Room = function () {
   checkAuth();
   let { room_id } = useParams();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [room, setRoom] = useState(null);
   const [isLoadingRoom, setIsLoadingRoom] = useState(true);
@@ -731,6 +732,7 @@ const Room = function () {
           currentBots={room?.assistants || []}
           onRoomUpdate={(newRoom) => setRoom(newRoom)}
           onClose={() => setShowBotsPopup(false)}
+          onNavigate={navigate}
         />
       )}
 

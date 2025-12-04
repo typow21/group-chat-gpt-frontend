@@ -4,12 +4,37 @@ import './home.css';
 import { checkAuth } from "./navbar"
 import { authFetch } from './api';
 
+// Prebuilt bots for quick chat (same as BotManager)
+const QUICK_CHAT_BOTS = [
+  {
+    name: "CodeHelper",
+    instructions: "You are CodeHelper, a friendly expert in Python, JavaScript, and web development. Always answer with clear code examples and explanations.",
+    emoji: "💻"
+  },
+  {
+    name: "SpanishTutor",
+    instructions: "You are SpanishTutor, a native Spanish teacher. Only reply in Spanish and help users learn the language.",
+    emoji: "🇪🇸"
+  },
+  {
+    name: "JokeBot",
+    instructions: "You are JokeBot, a witty comedian. Always reply with a joke or humorous comment, but keep it appropriate.",
+    emoji: "😂"
+  },
+  {
+    name: "Motivator",
+    instructions: "You are Motivator, a positive coach. Encourage users and provide motivational advice in every response.",
+    emoji: "💪"
+  }
+];
+
 function Home() {
   checkAuth();
   const navigate = useNavigate();
   const [recentRooms, setRecentRooms] = useState([]);
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [creatingBotChat, setCreatingBotChat] = useState(null);
   const userId = localStorage.getItem('userId');
   const userName = localStorage.getItem('firstName') || 'there';
 
@@ -103,6 +128,43 @@ function Home() {
       .catch(error => {
         console.error('There was a problem creating the room:', error);
       });
+  };
+
+  // Create a new chat room with only the selected bot (no default ChatGPT)
+  const createRoomWithBot = async (bot) => {
+    if (creatingBotChat) return;
+    setCreatingBotChat(bot.name);
+    
+    try {
+      const newRoom = {
+        creatorId: userId,
+        name: `Chat with ${bot.name}`,
+        description: '',
+        users: [],
+        assistants: [{
+          name: bot.name,
+          custom_instructions: bot.instructions || null,
+        }]
+      };
+
+      const response = await authFetch(process.env.REACT_APP_ENDPOINT + '/create-room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRoom),
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(text || `Request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      navigate("/room/" + data.id);
+    } catch (error) {
+      console.error('Error starting chat with bot:', error);
+    } finally {
+      setCreatingBotChat(null);
+    }
   };
 
   const getGreeting = () => {
@@ -216,6 +278,29 @@ function Home() {
                 <button onClick={() => navigate('/friends')}>Find friends</button>
               </div>
             )}
+          </div>
+
+          {/* Quick Chat with Bots */}
+          <div className="home-section">
+            <div className="section-header">
+              <h2>Quick Chat with Bot</h2>
+            </div>
+            <div className="friends-quick-list">
+              {QUICK_CHAT_BOTS.map(bot => (
+                <button 
+                  key={bot.name} 
+                  className="friend-quick-btn bot-quick-btn"
+                  onClick={() => createRoomWithBot(bot)}
+                  title={`Start chat with ${bot.name}`}
+                  disabled={creatingBotChat === bot.name}
+                >
+                  <div className="friend-avatar bot-avatar">
+                    {bot.emoji}
+                  </div>
+                  <span>{creatingBotChat === bot.name ? '...' : bot.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

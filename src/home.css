@@ -297,6 +297,21 @@ body {
   max-width: 60px;
 }
 
+/* Bot Quick Chat Styles */
+.bot-quick-btn .bot-avatar {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  font-size: 1.2rem;
+}
+
+.bot-quick-btn:hover .bot-avatar {
+  background: linear-gradient(135deg, #a78bfa, #818cf8);
+}
+
+.bot-quick-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;
