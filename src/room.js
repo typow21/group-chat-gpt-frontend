@@ -77,6 +77,10 @@ const Room = function () {
   const [editingBot, setEditingBot] = useState(null);
   const [botsFromOtherRooms, setBotsFromOtherRooms] = useState([]);
   const [loadingOtherBots, setLoadingOtherBots] = useState(false);
+  // Model configuration state for bot editing
+  const [editBotModel, setEditBotModel] = useState('gpt-4o-mini');
+  const [editBotTemperature, setEditBotTemperature] = useState(0.7);
+  const [editBotMaxTokens, setEditBotMaxTokens] = useState(512);
   const typingTimeoutRef = useRef(null);
   const lastTypingStatusRef = useRef(false);
   let userId = localStorage.getItem("userId");
@@ -150,7 +154,7 @@ const Room = function () {
     setIsLoadingRoom(true);
     setTypingUsers({});
     setSendMessageText("");
-    
+
     const fetchRoom = () => {
       authFetch(process.env.REACT_APP_ENDPOINT + "/room/" + room_id)
         .then((response) => {
@@ -193,10 +197,10 @@ const Room = function () {
         if (encryptionEnabled && newMessage.content) {
           messageContent = await decryptMessage(room_id, newMessage.content);
         }
-        
+
         setMessages((prevMessages) => {
           // Remove any pending/temp messages from the same sender to avoid duplicates
-          const filtered = prevMessages.filter(m => 
+          const filtered = prevMessages.filter(m =>
             !m.id?.toString().startsWith('temp-') || m.sender !== newMessage.sender
           );
           return [...filtered, { ...newMessage, content: messageContent }];
@@ -250,11 +254,20 @@ const Room = function () {
     return () => clearInterval(interval);
   }, []);
 
+  // Initialize model configuration when editing a bot
+  useEffect(() => {
+    if (editingBot) {
+      setEditBotModel(editingBot.model || 'gpt-4o-mini');
+      setEditBotTemperature(editingBot.temperature ?? 0.7);
+      setEditBotMaxTokens(editingBot.max_tokens || editingBot.maxTokens || 512);
+    }
+  }, [editingBot]);
+
   // Function to emit typing status
   const emitTypingStatus = (isTyping) => {
     if (lastTypingStatusRef.current === isTyping) return;
     lastTypingStatusRef.current = isTyping;
-    
+
     authFetch(process.env.REACT_APP_ENDPOINT + "/typing", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -269,7 +282,7 @@ const Room = function () {
 
   if (loading_ws) return <div className="loading-state">Connecting to chat...</div>;
   if (error_ws) return <div className="error-state">Error: {error_ws.message}</div>;
-  
+
   // Show minimal loading state while switching rooms
   if (isLoadingRoom) {
     return (
@@ -300,9 +313,9 @@ const Room = function () {
 
   function addAI() {
     // Cycle through available bots or use first bot
-    const bots = room?.assistants || [{name: 'ChatGPT'}];
+    const bots = room?.assistants || [{ name: 'ChatGPT' }];
     const firstBot = bots[0].name;
-    
+
     // Insert a single leading bot mention on demand
     setSendMessageText(prev => {
       const botPattern = new RegExp(`\\B@(${bots.map(b => b.name).join('|')})\\b`, 'i');
@@ -321,24 +334,24 @@ const Room = function () {
     if (sendMessageText === "") {
       return;
     }
-    
+
     // Stop typing indicator when sending a message
     emitTypingStatus(false);
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     // Store original message for optimistic update
     const originalMessage = sendMessageText;
     const tempId = `temp-${Date.now()}`;
-    
+
     // Optimistic update - show message immediately
     setMessages((prevMessages) => [
       ...prevMessages,
       { id: tempId, content: originalMessage, sender: userId, pending: true }
     ]);
     setSendMessageText("");
-    
+
     // Send exactly what the user typed; no automatic mentions
     let contentToSend = originalMessage;
     // Parse unique @mentions from the content (before encryption)
@@ -375,7 +388,7 @@ const Room = function () {
           setSendMessageText(originalMessage); // Restore the message
         } else {
           // WebSocket subscription will handle adding the real message and removing temp
-          
+
           // Check if room was auto-renamed
           if (data.newRoomName) {
             setRoom(prevRoom => ({
@@ -383,11 +396,11 @@ const Room = function () {
               name: data.newRoomName
             }));
             // Dispatch event to update sidebar
-            window.dispatchEvent(new CustomEvent('roomRenamed', { 
-              detail: { roomId: room_id, name: data.newRoomName } 
+            window.dispatchEvent(new CustomEvent('roomRenamed', {
+              detail: { roomId: room_id, name: data.newRoomName }
             }));
           }
-          
+
           // Notify mentioned users (best-effort; ignore failures)
           const messageId = data?.message?.id || data?.id; // adapt if backend returns message
           mentionedUsers.forEach((username) => {
@@ -427,14 +440,14 @@ const Room = function () {
     if (showMentionPopup && mentionSuggestions.length > 0) {
       if (event.key === "ArrowDown") {
         event.preventDefault();
-        setMentionSelectedIndex(prev => 
+        setMentionSelectedIndex(prev =>
           prev < mentionSuggestions.length - 1 ? prev + 1 : 0
         );
         return;
       }
       if (event.key === "ArrowUp") {
         event.preventDefault();
-        setMentionSelectedIndex(prev => 
+        setMentionSelectedIndex(prev =>
           prev > 0 ? prev - 1 : mentionSuggestions.length - 1
         );
         return;
@@ -516,16 +529,16 @@ const Room = function () {
     }
     // Get current user's username to exclude from suggestions
     const currentUsername = room.users[userId]?.username?.toLowerCase();
-    
+
     // Get room users excluding current user
     const users = Object.values(room.users)
       .map(u => u.username)
       .filter(name => name && name.toLowerCase() !== currentUsername);
-    
+
     // Include all bots from the room
     const bots = room.assistants?.map(a => a.name) || ['chatgpt'];
     const allSuggestions = [...bots, ...users];
-    
+
     const q = query.toLowerCase();
     const filtered = allSuggestions
       .filter(name => name.toLowerCase().includes(q))
@@ -537,7 +550,7 @@ const Room = function () {
   const onMessageInputChange = (e) => {
     const val = e.target.value;
     setSendMessageText(val);
-    
+
     // Emit typing status with debounce
     if (val.trim()) {
       emitTypingStatus(true);
@@ -551,7 +564,7 @@ const Room = function () {
     } else {
       emitTypingStatus(false);
     }
-    
+
     // Caret-aware detection: use current cursor to find mention token
     const el = inputRef.current;
     const caret = el ? el.selectionStart : val.length;
@@ -591,7 +604,7 @@ const Room = function () {
     setSendMessageText(newText);
     setShowMentionPopup(false);
     setMentionSelectedIndex(0);
-    
+
     // Restore focus and move caret to end of inserted mention
     if (inputRef.current) {
       inputRef.current.focus();
@@ -604,7 +617,7 @@ const Room = function () {
   const generateRoomName = () => {
     if (isGeneratingName) return;
     setIsGeneratingName(true);
-    
+
     authFetch(process.env.REACT_APP_ENDPOINT + "/generate-room-name/" + room_id, {
       method: "POST",
     })
@@ -612,8 +625,8 @@ const Room = function () {
       .then((data) => {
         if (data.success && data.name) {
           setRoom(prevRoom => ({ ...prevRoom, name: data.name }));
-          window.dispatchEvent(new CustomEvent('roomRenamed', { 
-            detail: { roomId: room_id, name: data.name } 
+          window.dispatchEvent(new CustomEvent('roomRenamed', {
+            detail: { roomId: room_id, name: data.name }
           }));
         } else if (data.error) {
           console.warn('Could not generate name:', data.error);
@@ -628,7 +641,7 @@ const Room = function () {
   // Bot management functions
   const addBot = () => {
     if (!newBotName.trim()) return;
-    
+
     authFetch(process.env.REACT_APP_ENDPOINT + "/add-bot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -653,7 +666,7 @@ const Room = function () {
 
   const removeBot = (botName) => {
     if (!window.confirm(`Remove ${botName}?`)) return;
-    
+
     authFetch(process.env.REACT_APP_ENDPOINT + "/remove-bot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -679,7 +692,7 @@ const Room = function () {
         if (data.success) {
           // Filter out bots that are already in the current room
           const currentBotNames = (room?.assistants || []).map(b => b.name.toLowerCase());
-          const filtered = data.bots.filter(b => 
+          const filtered = data.bots.filter(b =>
             !currentBotNames.includes(b.name.toLowerCase()) &&
             b.sourceRoomId !== room_id
           );
@@ -714,7 +727,7 @@ const Room = function () {
       .catch((error) => console.error("Error copying bot:", error));
   };
 
-  const updateBot = (botName, newName, instructions) => {
+  const updateBot = (botName, newName, instructions, model, temperature, maxTokens) => {
     authFetch(process.env.REACT_APP_ENDPOINT + "/update-bot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -722,7 +735,10 @@ const Room = function () {
         roomId: room_id,
         botName,
         newName: newName?.trim() || null,
-        customInstructions: instructions?.trim() || null
+        customInstructions: instructions?.trim() || null,
+        model: model || 'gpt-4o-mini',
+        temperature: temperature ?? 0.7,
+        max_tokens: maxTokens || 512
       }),
     })
       .then((response) => response.json())
@@ -736,6 +752,16 @@ const Room = function () {
       })
       .catch((error) => console.error("Error updating bot:", error));
   };
+
+  const PRESET_MODELS = [
+    { value: "gpt-4o", label: "GPT-4o (Latest)" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini (Fast & Affordable)" },
+    { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+    { value: "gpt-4", label: "GPT-4" },
+    { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
+    { value: "o1-preview", label: "o1-preview (Reasoning)" },
+    { value: "o1-mini", label: "o1-mini (Fast Reasoning)" },
+  ];
 
   const PREBUILT_BOTS = [
     {
@@ -777,9 +803,9 @@ const Room = function () {
           )}
         </div>
         <div className="room-actions">
-          <button 
-            className="action-btn" 
-            onClick={generateRoomName} 
+          <button
+            className="action-btn"
+            onClick={generateRoomName}
             title="Generate Name from Conversation"
             disabled={isGeneratingName}
           >
@@ -878,15 +904,15 @@ const Room = function () {
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                      <button 
-                        onClick={() => setEditingBot(bot)} 
+                      <button
+                        onClick={() => setEditingBot(bot)}
                         className="submit-button"
                         style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                       >
                         Edit
                       </button>
-                      <button 
-                        onClick={() => removeBot(bot.name)} 
+                      <button
+                        onClick={() => removeBot(bot.name)}
                         className="close-button"
                         style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                       >
@@ -896,7 +922,7 @@ const Room = function () {
                   </div>
                 ))}
               </div>
-              
+
               <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
                 <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}>Add New Bot</h4>
                 <input
@@ -1009,29 +1035,34 @@ const Room = function () {
 
       {editingBot && (
         <div className="popup-background" onClick={() => setEditingBot(null)}>
-          <div className="popup" onClick={e => e.stopPropagation()}>
+          <div className="popup" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
             <h3>Edit Bot: {editingBot.name}</h3>
+
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Bot Name</label>
             <input
               type="text"
-              placeholder="New bot name (optional)"
+              placeholder="Bot name"
               defaultValue={editingBot.name}
               id="edit-bot-name"
               style={{
                 width: '100%',
                 padding: '0.75rem',
-                marginBottom: '0.75rem',
+                marginBottom: '1rem',
                 background: 'rgba(255,255,255,0.05)',
                 border: '1px solid var(--glass-border)',
                 borderRadius: '8px',
                 color: 'var(--text-primary)',
-                fontSize: '0.95rem'
+                fontSize: '0.95rem',
+                boxSizing: 'border-box'
               }}
             />
+
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Custom Instructions</label>
             <textarea
               placeholder="Custom personality/instructions"
               defaultValue={editingBot.custom_instructions || editingBot.customInstructions || ''}
               id="edit-bot-instructions"
-              rows="5"
+              rows="4"
               style={{
                 width: '100%',
                 padding: '0.75rem',
@@ -1042,19 +1073,97 @@ const Room = function () {
                 color: 'var(--text-primary)',
                 fontSize: '0.9rem',
                 resize: 'vertical',
-                fontFamily: 'inherit'
+                fontFamily: 'inherit',
+                boxSizing: 'border-box'
               }}
             />
+
+            <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '1rem', marginBottom: '1rem' }}>
+              <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Model Configuration</h4>
+
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Model</label>
+              <select
+                value={editBotModel}
+                onChange={(e) => setEditBotModel(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  marginBottom: '1rem',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.95rem',
+                  boxSizing: 'border-box',
+                  cursor: 'pointer'
+                }}
+              >
+                {PRESET_MODELS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Temperature: {editBotTemperature}</label>
+              <input
+                type="range"
+                min="0"
+                max="2"
+                step="0.1"
+                value={editBotTemperature}
+                onChange={(e) => setEditBotTemperature(parseFloat(e.target.value))}
+                style={{
+                  width: '100%',
+                  marginBottom: '1rem'
+                }}
+              />
+              <small style={{ display: 'block', color: 'var(--text-secondary)', marginTop: '-0.75rem', marginBottom: '1rem', fontSize: '0.85rem' }}>
+                Controls randomness. Lower = more focused, Higher = more creative
+              </small>
+
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Max Tokens</label>
+              <input
+                type="number"
+                min="1"
+                max="4096"
+                step="1"
+                value={editBotMaxTokens}
+                onChange={(e) => setEditBotMaxTokens(parseInt(e.target.value, 10))}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  marginBottom: '0.5rem',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.95rem',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <small style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.85rem' }}>
+                Maximum number of tokens in the response (1-4096)
+              </small>
+            </div>
+
             <div className="button-group">
               <button onClick={() => setEditingBot(null)} className="close-button">
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => {
                   const newName = document.getElementById('edit-bot-name').value;
                   const instructions = document.getElementById('edit-bot-instructions').value;
-                  updateBot(editingBot.name, newName !== editingBot.name ? newName : null, instructions);
-                }} 
+                  updateBot(
+                    editingBot.name,
+                    newName !== editingBot.name ? newName : null,
+                    instructions,
+                    editBotModel,
+                    editBotTemperature,
+                    editBotMaxTokens
+                  );
+                }}
                 className="submit-button"
               >
                 Save Changes
@@ -1068,13 +1177,13 @@ const Room = function () {
         <div className="chat-container">
           <div className="messages">
             {messages.map((message) => {
-              const bots = room?.assistants || [{name: 'ChatGPT'}];
+              const bots = room?.assistants || [{ name: 'ChatGPT' }];
               const botNames = bots.map(b => b.name.toLowerCase());
               const isBotMessage = botNames.includes(message.sender.toLowerCase());
               const isOwnMessage = message.sender === userId;
               const senderUsername = room?.users?.[message.sender]?.username || message.sender;
               const isPending = message.pending;
-              
+
               return (
                 <div
                   key={message.id}
@@ -1138,7 +1247,7 @@ const Room = function () {
                 <div className="mention-popup">
                   <div className="mention-popup-header">Mention someone</div>
                   {mentionSuggestions.map((name, index) => {
-                    const bots = room?.assistants || [{name: 'ChatGPT'}];
+                    const bots = room?.assistants || [{ name: 'ChatGPT' }];
                     const botNames = bots.map(b => b.name.toLowerCase());
                     const isAI = botNames.includes(name.toLowerCase());
                     const initial = isAI ? '✨' : name.charAt(0).toUpperCase();
