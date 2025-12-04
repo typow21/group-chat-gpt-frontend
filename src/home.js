@@ -25,11 +25,6 @@ const QUICK_CHAT_BOTS = [
     name: "Motivator",
     instructions: "You are Motivator, a positive coach. Encourage users and provide motivational advice in every response.",
     emoji: "💪"
-  },
-   {
-    name: "TravelGuide",
-    instructions: "You are TravelGuide, an expert in world travel. Provide tips, destination ideas, and travel advice.",
-    emoji: "🌍"
   }
 ];
 
@@ -38,6 +33,7 @@ function Home() {
   const navigate = useNavigate();
   const [recentRooms, setRecentRooms] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [userBots, setUserBots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creatingBotChat, setCreatingBotChat] = useState(null);
   const userId = localStorage.getItem('userId');
@@ -66,6 +62,15 @@ function Home() {
         if (friendsRes.ok) {
           const friendsData = await friendsRes.json();
           setFriends((friendsData || []).slice(0, 5));
+        }
+
+        // Fetch user's custom bots
+        const botsRes = await authFetch(`${process.env.REACT_APP_ENDPOINT}/user/${userId}/quick-bots`);
+        if (botsRes.ok) {
+          const botsData = await botsRes.json();
+          if (botsData.success) {
+            setUserBots((botsData.bots || []).slice(0, 3));
+          }
         }
       } catch (error) {
         console.error('Error fetching home data:', error);
@@ -289,9 +294,26 @@ function Home() {
           <div className="home-section">
             <div className="section-header">
               <h2>Quick Chat with Bot</h2>
+              <button className="see-all-btn" onClick={() => navigate('/bots')}>See all →</button>
             </div>
             <div className="friends-quick-list">
-              {QUICK_CHAT_BOTS.map(bot => (
+              {/* Show user's custom bots first */}
+              {userBots.map(bot => (
+                <button 
+                  key={`user-${bot.id}`} 
+                  className="friend-quick-btn bot-quick-btn user-bot"
+                  onClick={() => createRoomWithBot(bot)}
+                  title={`Start chat with ${bot.name}`}
+                  disabled={creatingBotChat === bot.name}
+                >
+                  <div className="friend-avatar bot-avatar" style={{ background: bot.color || 'var(--primary-color)' }}>
+                    {bot.emoji || '🤖'}
+                  </div>
+                  <span>{creatingBotChat === bot.name ? '...' : bot.name}</span>
+                </button>
+              ))}
+              {/* Then show prebuilt bots */}
+              {QUICK_CHAT_BOTS.slice(0, 4 - userBots.length).map(bot => (
                 <button 
                   key={bot.name} 
                   className="friend-quick-btn bot-quick-btn"

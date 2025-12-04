@@ -8,6 +8,7 @@ import SignupForm from "./signup";
 import Friends from "./friends";
 import Profile from "./Profile";
 import Layout from "./Layout";
+import QuickBots from "./QuickBots";
 import { ThemeProvider } from "./ThemeContext";
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
             <Route path="/room/:room_id" element={<Room />} />
             <Route path="rooms" element={<Rooms />} />
             <Route path="friends" element={<Friends />} />
+            <Route path="bots" element={<QuickBots />} />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="login" element={<LoginForm />} />

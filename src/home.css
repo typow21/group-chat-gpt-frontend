@@ -312,6 +312,24 @@ body {
   cursor: wait;
 }
 
+/* User-created bot indicator */
+.bot-quick-btn.user-bot .bot-avatar {
+  box-shadow: 0 0 0 2px var(--surface-color), 0 0 0 3px var(--primary-color);
+}
+
+.bot-quick-btn.user-bot::after {
+  content: '★';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.6rem;
+  color: var(--primary-color);
+}
+
+.bot-quick-btn.user-bot {
+  position: relative;
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;
