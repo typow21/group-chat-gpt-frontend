@@ -497,9 +497,21 @@ const Room = function () {
       if (data.success) {
         // Optimistically update local state (subscription will sync)
         setMessages(prevMessages =>
-          prevMessages.map(msg =>
-            msg.id === messageId ? { ...msg, reactions: data.reactions } : msg
-          )
+          prevMessages.map(msg => {
+            if (msg.id === messageId) {
+              let newReactions = data.reactions;
+              if (typeof newReactions === 'string') {
+                try {
+                  newReactions = JSON.parse(newReactions);
+                } catch (e) {
+                  console.warn('Failed to parse reactions from toggle response:', e);
+                  newReactions = {};
+                }
+              }
+              return { ...msg, reactions: newReactions };
+            }
+            return msg;
+          })
         );
       }
     } catch (error) {
@@ -857,17 +869,17 @@ const Room = function () {
                   </span>
                   
                   {/* Reactions display */}
-                  {message.reactions && Object.keys(message.reactions).length > 0 && (
+                  {message.reactions && typeof message.reactions === 'object' && Object.keys(message.reactions).length > 0 && (
                     <div className="message-reactions">
                       {Object.entries(message.reactions).map(([emoji, users]) => (
                         <button
                           key={emoji}
-                          className={`reaction-badge ${users.includes(userId) ? 'user-reacted' : ''}`}
+                          className={`reaction-badge ${Array.isArray(users) && users.includes(userId) ? 'user-reacted' : ''}`}
                           onClick={() => toggleReaction(message.id, emoji)}
-                          title={users.join(', ')}
+                          title={Array.isArray(users) ? users.join(', ') : ''}
                         >
                           <span className="reaction-emoji">{emoji}</span>
-                          <span className="reaction-count">{users.length}</span>
+                          <span className="reaction-count">{Array.isArray(users) ? users.length : 0}</span>
                         </button>
                       ))}
                     </div>
