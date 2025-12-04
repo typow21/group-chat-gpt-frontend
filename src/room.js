@@ -178,31 +178,32 @@ const Room = function () {
         .then(async (data) => {
           setRoom(data);
 
+          // Ensure messages is an array
+          const rawMessages = data.messages || [];
+
           // Parse reactions if they are strings (fix for reactions not saving/loading)
-          if (data.messages) {
-            data.messages = data.messages.map(msg => {
-              if (typeof msg.reactions === 'string') {
-                try {
-                  msg.reactions = JSON.parse(msg.reactions);
-                } catch (e) {
-                  console.warn('Failed to parse reactions for message', msg.id, e);
-                  msg.reactions = {};
-                }
+          const processedMessages = rawMessages.map(msg => {
+            if (typeof msg.reactions === 'string') {
+              try {
+                msg.reactions = JSON.parse(msg.reactions);
+              } catch (e) {
+                console.warn('Failed to parse reactions for message', msg.id, e);
+                msg.reactions = {};
               }
-              return msg;
-            });
-          }
+            }
+            return msg;
+          });
 
           // Share room key with server for AI decryption
           if (encryptionEnabled) {
             shareRoomKeyWithServer(room_id, process.env.REACT_APP_ENDPOINT);
           }
           // Decrypt messages if encryption is supported
-          if (encryptionEnabled && data.messages) {
-            const decrypted = await decryptMessages(room_id, data.messages);
+          if (encryptionEnabled) {
+            const decrypted = await decryptMessages(room_id, processedMessages);
             setMessages(decrypted);
           } else {
-            setMessages([...data.messages]);
+            setMessages(processedMessages);
           }
           setIsLoadingRoom(false);
           // Enable sticky Ask AI for two-party rooms with a bot
