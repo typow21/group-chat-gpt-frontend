@@ -861,143 +861,146 @@ const Room = function () {
 
       {showBotsPopup && (
         <div className="popup-background" onClick={() => setShowBotsPopup(false)}>
-          <div className="popup" onClick={e => e.stopPropagation()}>
+          <div className="popup" onClick={e => e.stopPropagation()} style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
             <h3>Manage Bots</h3>
-            <div className="users" style={{ marginBottom: '1rem' }}>
-              {room?.assistants?.map((bot) => (
-                <div key={bot.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', marginBottom: '0.5rem' }}>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 'bold' }}>
-                      ✨ {bot.name}
-                    </p>
-                    {(bot.custom_instructions || bot.customInstructions) && (
-                      <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem' }}>
-                        {(bot.custom_instructions || bot.customInstructions).substring(0, 60)}{(bot.custom_instructions || bot.customInstructions).length > 60 ? '...' : ''}
-                      </small>
-                    )}
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
+              <div className="users" style={{ marginBottom: '1rem' }}>
+                {room?.assistants?.map((bot) => (
+                  <div key={bot.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: 0, fontWeight: 'bold' }}>
+                        ✨ {bot.name}
+                      </p>
+                      {(bot.custom_instructions || bot.customInstructions) && (
+                        <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {(bot.custom_instructions || bot.customInstructions).substring(0, 60)}{(bot.custom_instructions || bot.customInstructions).length > 60 ? '...' : ''}
+                        </small>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                      <button 
+                        onClick={() => setEditingBot(bot)} 
+                        className="submit-button"
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => removeBot(bot.name)} 
+                        className="close-button"
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
-                      onClick={() => setEditingBot(bot)} 
-                      className="submit-button"
-                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      onClick={() => removeBot(bot.name)} 
-                      className="close-button"
-                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
-              <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}>Add New Bot</h4>
-              <input
-                type="text"
-                placeholder="Bot name (e.g., CodeHelper)"
-                value={newBotName}
-                onChange={(e) => setNewBotName(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  marginBottom: '0.75rem',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--glass-border)',
-                  borderRadius: '8px',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95rem'
-                }}
-              />
-              <textarea
-                placeholder="Custom personality/instructions (optional)"
-                value={newBotInstructions}
-                onChange={(e) => setNewBotInstructions(e.target.value)}
-                rows="3"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  marginBottom: '0.75rem',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--glass-border)',
-                  borderRadius: '8px',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.9rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit'
-                }}
-              />
-              <button onClick={addBot} className="submit-button" style={{ width: '100%', marginBottom: '0.5rem' }}>
-                Add Bot
-              </button>
-            </div>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h4 style={{ marginBottom: '0.5rem', fontSize: '0.95rem' }}>Quick Add Prebuilt Bots</h4>
-              {PREBUILT_BOTS.map(bot => (
-                <div key={bot.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
-                  <div style={{ flex: 1 }}>
-                    <span style={{ fontWeight: 'bold' }}>✨ {bot.name}</span>
-                    <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem' }}>{bot.instructions.substring(0, 60)}{bot.instructions.length > 60 ? '...' : ''}</small>
-                  </div>
-                  <button
-                    className="submit-button"
-                    style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}
-                    onClick={() => {
-                      setNewBotName(bot.name);
-                      setNewBotInstructions(bot.instructions);
-                    }}
-                  >
-                    Use
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ marginBottom: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <h4 style={{ margin: 0, fontSize: '0.95rem' }}>Copy from Other Chats</h4>
-                <button
-                  onClick={fetchBotsFromOtherRooms}
-                  className="submit-button"
-                  style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}
-                  disabled={loadingOtherBots}
-                >
-                  {loadingOtherBots ? 'Loading...' : 'Load Bots'}
+                ))}
+              </div>
+              
+              <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
+                <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}>Add New Bot</h4>
+                <input
+                  type="text"
+                  placeholder="Bot name (e.g., CodeHelper)"
+                  value={newBotName}
+                  onChange={(e) => setNewBotName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    marginBottom: '0.75rem',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '8px',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.95rem',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <textarea
+                  placeholder="Custom personality/instructions (optional)"
+                  value={newBotInstructions}
+                  onChange={(e) => setNewBotInstructions(e.target.value)}
+                  rows="3"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    marginBottom: '0.75rem',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '8px',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.9rem',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <button onClick={addBot} className="submit-button" style={{ width: '100%', marginBottom: '0.5rem' }}>
+                  Add Bot
                 </button>
               </div>
-              {botsFromOtherRooms.length > 0 ? (
-                botsFromOtherRooms.map(bot => (
-                  <div key={`${bot.sourceRoomId}-${bot.name}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
-                    <div style={{ flex: 1 }}>
-                      <span style={{ fontWeight: 'bold' }}>🔄 {bot.name}</span>
-                      <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem' }}>
-                        From: {bot.sourceRoomName}
-                        {bot.customInstructions && ` • ${bot.customInstructions.substring(0, 40)}${bot.customInstructions.length > 40 ? '...' : ''}`}
-                      </small>
+
+              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
+                <h4 style={{ marginBottom: '0.5rem', fontSize: '0.95rem' }}>Quick Add Prebuilt Bots</h4>
+                {PREBUILT_BOTS.map(bot => (
+                  <div key={bot.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 'bold' }}>✨ {bot.name}</span>
+                      <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bot.instructions.substring(0, 50)}...</small>
                     </div>
                     <button
                       className="submit-button"
-                      style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}
-                      onClick={() => copyBotToRoom(bot)}
+                      style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem', flexShrink: 0 }}
+                      onClick={() => {
+                        setNewBotName(bot.name);
+                        setNewBotInstructions(bot.instructions);
+                      }}
                     >
-                      Copy
+                      Use
                     </button>
                   </div>
-                ))
-              ) : (
-                <small style={{ color: 'var(--text-secondary)' }}>
-                  {loadingOtherBots ? 'Searching your chats...' : 'Click "Load Bots" to find bots from your other chats'}
-                </small>
-              )}
+                ))}
+              </div>
+
+              <div style={{ marginTop: '1rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem' }}>Copy from Other Chats</h4>
+                  <button
+                    onClick={fetchBotsFromOtherRooms}
+                    className="submit-button"
+                    style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}
+                    disabled={loadingOtherBots}
+                  >
+                    {loadingOtherBots ? 'Loading...' : 'Load Bots'}
+                  </button>
+                </div>
+                {botsFromOtherRooms.length > 0 ? (
+                  botsFromOtherRooms.map(bot => (
+                    <div key={`${bot.sourceRoomId}-${bot.name}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontWeight: 'bold' }}>🔄 {bot.name}</span>
+                        <small style={{ color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          From: {bot.sourceRoomName}
+                        </small>
+                      </div>
+                      <button
+                        className="submit-button"
+                        style={{ padding: '0.3rem 0.7rem', fontSize: '0.85rem', flexShrink: 0 }}
+                        onClick={() => copyBotToRoom(bot)}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <small style={{ color: 'var(--text-secondary)' }}>
+                    {loadingOtherBots ? 'Searching your chats...' : 'Click "Load Bots" to find bots from your other chats'}
+                  </small>
+                )}
+              </div>
             </div>
 
-            <button onClick={() => setShowBotsPopup(false)} className="close-button full-width">
+            <button onClick={() => setShowBotsPopup(false)} className="close-button full-width" style={{ marginTop: '1rem', flexShrink: 0 }}>
               Close
             </button>
           </div>
