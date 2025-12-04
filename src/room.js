@@ -882,6 +882,16 @@ const Room = function () {
                               {emoji}
                             </button>
                           ))}
+                          <button
+                            className="reaction-option add-custom-reaction"
+                            onClick={() => {
+                                const emoji = prompt("Enter an emoji:");
+                                if (emoji) toggleReaction(message.id, emoji);
+                            }}
+                            title="Add custom emoji"
+                          >
+                            ➕
+                          </button>
                         </div>
                       )}
                     </div>

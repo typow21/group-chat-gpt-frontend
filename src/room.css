@@ -775,6 +775,9 @@ body.light-mode .markdown-table th {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   z-index: 100;
   animation: reactionPickerSlide 0.2s ease;
+  flex-wrap: wrap;
+  min-width: 200px;
+  max-width: 300px;
 }
 
 @keyframes reactionPickerSlide {
@@ -834,6 +837,7 @@ body.light-mode .markdown-table th {
 #sent .reaction-picker {
   right: auto;
   left: 0;
+  flex-wrap: wrap;
 }
 
 /* Bot Message Styling */
