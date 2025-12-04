@@ -137,17 +137,35 @@ const Room = function () {
         // Update local room state with returned room data so new user appears immediately
         if (data) {
           setRoom(data);
-          // If messages are included, decrypt them when encryption is enabled
-          if (encryptionEnabled && data.messages) {
-            try {
-              const decrypted = await decryptMessages(room_id, data.messages);
-              setMessages(decrypted);
-            } catch (e) {
-              console.warn('Failed to decrypt messages after sharing room:', e);
-              setMessages([...data.messages]);
+          // If messages are included, normalize reactions then decrypt (if enabled)
+          if (data.messages) {
+            const rawMessages = data.messages || [];
+            const processedMessages = rawMessages.map(msg => {
+              if (typeof msg.reactions === 'string') {
+                try {
+                  msg.reactions = JSON.parse(msg.reactions);
+                } catch (e) {
+                  console.warn('Failed to parse reactions for message', msg.id, e);
+                  msg.reactions = {};
+                }
+              }
+              if (!msg.reactions || typeof msg.reactions !== 'object' || Array.isArray(msg.reactions)) {
+                msg.reactions = {};
+              }
+              return msg;
+            });
+
+            if (encryptionEnabled) {
+              try {
+                const decrypted = await decryptMessages(room_id, processedMessages);
+                setMessages(decrypted);
+              } catch (e) {
+                console.warn('Failed to decrypt messages after sharing room:', e);
+                setMessages(processedMessages);
+              }
+            } else {
+              setMessages(processedMessages);
             }
-          } else if (data.messages) {
-            setMessages([...data.messages]);
           }
         }
         setShareRoomUsername("");
@@ -181,8 +199,9 @@ const Room = function () {
           // Ensure messages is an array
           const rawMessages = data.messages || [];
 
-          // Parse reactions if they are strings (fix for reactions not saving/loading)
+          // Ensure reactions is always an object (fix for reactions not saving/loading)
           const processedMessages = rawMessages.map(msg => {
+            // If reactions is a JSON string, parse it
             if (typeof msg.reactions === 'string') {
               try {
                 msg.reactions = JSON.parse(msg.reactions);
@@ -191,6 +210,12 @@ const Room = function () {
                 msg.reactions = {};
               }
             }
+
+            // If reactions is missing or not an object, normalize to empty object
+            if (!msg.reactions || typeof msg.reactions !== 'object' || Array.isArray(msg.reactions)) {
+              msg.reactions = {};
+            }
+
             return msg;
           });
 
@@ -221,6 +246,18 @@ const Room = function () {
     onSubscriptionData: async (subscriptionResult) => {
       const newMessage = subscriptionResult?.subscriptionData?.data?.messages;
       if (newMessage) {
+        // Normalize reactions on incoming message
+        if (typeof newMessage.reactions === 'string') {
+          try {
+            newMessage.reactions = JSON.parse(newMessage.reactions);
+          } catch (e) {
+            console.warn('Failed to parse reactions in incoming message:', e);
+            newMessage.reactions = {};
+          }
+        }
+        if (!newMessage.reactions || typeof newMessage.reactions !== 'object' || Array.isArray(newMessage.reactions)) {
+          newMessage.reactions = {};
+        }
         // Decrypt the incoming message if encryption is enabled
         let messageContent = newMessage.content;
         if (encryptionEnabled && newMessage.content) {
@@ -271,17 +308,29 @@ const Room = function () {
     onSubscriptionData: (subscriptionResult) => {
       const reactionData = subscriptionResult?.subscriptionData?.data?.reactions;
       if (reactionData) {
-        const { messageId, reactions: reactionsJson } = reactionData;
-        try {
-          const reactions = JSON.parse(reactionsJson);
-          setMessages(prevMessages =>
-            prevMessages.map(msg =>
-              msg.id === messageId ? { ...msg, reactions } : msg
-            )
-          );
-        } catch (e) {
-          console.warn('Failed to parse reaction update:', e);
+        const { messageId } = reactionData;
+        let reactionsPayload = reactionData.reactions;
+
+        // Accept either a JSON string or an object
+        let parsedReactions = {};
+        if (typeof reactionsPayload === 'string') {
+          try {
+            parsedReactions = JSON.parse(reactionsPayload);
+          } catch (e) {
+            console.warn('Failed to parse reaction update string:', e);
+            parsedReactions = {};
+          }
+        } else if (reactionsPayload && typeof reactionsPayload === 'object' && !Array.isArray(reactionsPayload)) {
+          parsedReactions = reactionsPayload;
+        } else {
+          parsedReactions = {};
         }
+
+        setMessages(prevMessages =>
+          prevMessages.map(msg =>
+            msg.id === messageId ? { ...msg, reactions: parsedReactions } : msg
+          )
+        );
       }
     },
   });
