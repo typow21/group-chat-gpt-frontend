@@ -21,6 +21,7 @@ const MESSAGE_SUB = function (room_id, user_id) {
           id
           content
           sender
+          reactions
       }
     }
 `;
