@@ -153,7 +153,17 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                 setNewBotTemperature(0.7);
                 setNewBotMaxTokens(512);
                 setActiveTab('active');
-            } else if (data.error) {) => {
+            } else if (data.error) {
+                alert(data.error);
+            }
+        } catch (error) {
+            console.error("Error adding bot:", error);
+        } finally {
+            setIsAdding(false);
+        }
+    };
+
+    const removeBot = async (botName) => {
         if (!window.confirm(`Remove ${botName}?`)) return;
 
         try {
