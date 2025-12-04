@@ -111,16 +111,6 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
             setEditModel(editingBot.model || 'gpt-4o-mini');
             setEditTemperature(editingBot.temperature ?? 0.7);
             setEditMaxTokens(editingBot.max_tokens || editingBot.maxTokens || 512);
-            setEditColor(editingBot.color || BOT_COLORS[0].value);
-        }
-    }, [editingBot]);
-    useEffect(() => {
-        if (editingBot) {
-            setEditName(editingBot.name);
-            setEditInstructions(editingBot.custom_instructions || editingBot.customInstructions || '');
-            setEditModel(editingBot.model || 'gpt-4o-mini');
-            setEditTemperature(editingBot.temperature ?? 0.7);
-            setEditMaxTokens(editingBot.max_tokens || editingBot.maxTokens || 512);
             setEditColor(editingBot.color || '#8b5cf6');
         }
     }, [editingBot]);
@@ -224,16 +214,6 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                     roomId,
                     botName: bot.name,
                     customInstructions: bot.customInstructions || null,
-                    color: bot.color || BOT_COLORS[0].value
-    const copyBotToRoom = async (bot) => {
-        try {
-            const response = await authFetch(process.env.REACT_APP_ENDPOINT + "/add-bot", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    roomId,
-                    botName: bot.name,
-                    customInstructions: bot.customInstructions || null,
                     color: bot.color || '#8b5cf6'
                 }),
             });
@@ -248,7 +228,23 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
         } catch (error) {
             console.error("Error copying bot:", error);
         }
-    };                      <label className="form-label">Bot Name</label>
+    };
+
+    if (editingBot) {
+        return (
+            <div className="bot-manager-overlay">
+                <div className="bot-manager-modal">
+                    <div className="bot-manager-header">
+                        <h3 className="bot-manager-title">
+                            <i className="fas fa-edit"></i> Edit {editingBot.name}
+                        </h3>
+                        <button className="bot-manager-close" onClick={() => setEditingBot(null)}>
+                            <i className="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div className="bot-manager-content">
+                        <div className="form-group">
+                            <label className="form-label">Bot Name</label>
                             <input
                                 className="form-input"
                                 value={editName}
@@ -331,13 +327,6 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                     </div>
                 </div>
             </div>
-
-        );
-    }                   </button>
-                    </div>
-                </div>
-            </div>
-
         );
     }
 
@@ -435,11 +424,17 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                                     placeholder="e.g., CodeHelper"
                                 />
                             </div>
+
                             <div className="form-group">
                                 <label className="form-label">Instructions</label>
                                 <textarea
-                            <div className="form-group">
-                                <label className="form-label">Bot Color</label>
+                                    className="form-textarea"
+                                    value={newBotInstructions}
+                                    onChange={(e) => setNewBotInstructions(e.target.value)}
+                                    placeholder="Describe how the bot should behave..."
+                                />
+                            </div>
+
                             <div className="form-group">
                                 <label className="form-label">Bot Color</label>
                                 <div className="color-picker-container">
@@ -451,7 +446,9 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                                     />
                                     <span className="color-value">{newBotColor}</span>
                                 </div>
-                            </div>lassName="form-group">
+                            </div>
+
+                            <div className="form-group">
                                 <label className="form-label">Model</label>
                                 <select
                                     className="form-select"
@@ -477,24 +474,19 @@ const BotManager = ({ roomId, userId, currentBots = [], onRoomUpdate, onClose })
                                         className="form-range"
                                     />
                                 </div>
+
                                 <div className="form-group half">
                                     <label className="form-label">Max Tokens</label>
                                     <input
                                         type="number"
                                         className="form-input"
                                         value={newBotMaxTokens}
-                                        onChange={(e) => setNewBotMaxTokens(parseInt(e.target.value))}
+                                        onChange={(e) => setNewBotMaxTokens(parseInt(e.target.value) || 0)}
                                     />
                                 </div>
                             </div>
 
                             <button
-                                className="btn-primary"
-                                onClick={() => addBot(newBotName, newBotInstructions)}
-                                disabled={isAdding}
-                            >
-                                {isAdding ? 'Creating...' : 'Create Bot'}
-                            </button>
                                 className="btn-primary"
                                 onClick={() => addBot(newBotName, newBotInstructions)}
                                 disabled={isAdding}
